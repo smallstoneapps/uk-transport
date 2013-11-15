@@ -1,0 +1,16 @@
+{
+  "uuid": "00e9deeb-16b4-4752-ae35-2cc088fc6ca9",
+  "shortName": "UK Transport",
+  "longName": "The ultimate companion app for the UK public transport system.",
+  "companyName": "Matthew Tole",
+  "versionCode": 1,
+  "versionLabel": "0.1.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+  },
+  "resources": {
+    "media": []
+  }
+}

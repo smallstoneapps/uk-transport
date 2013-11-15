@@ -1,0 +1,11 @@
+# Build folder
+build
+
+# Waf lock files
+pebble/.lock-*
+
+# Generated Javascript
+pebble/src/js
+
+# OS guff
+.DS_Store
