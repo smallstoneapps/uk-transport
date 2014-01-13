@@ -7,7 +7,8 @@
 
 #include <pebble.h>
 #include "win-tube.h"
-#include "../libs/pebble-assist.h"
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
 #include "../layers/layer-loading.h"
 #include "../tube.h"
 
@@ -37,12 +38,13 @@ void win_tube_create(void) {
 }
 
 void win_tube_destroy(void) {
-  window_destroy_safe(window);
+  window_destroy(window);
 }
 
 void win_tube_show(bool animated) {
   window_stack_push(window, animated);
   tube_update_lines();
+  layer_show(layer_loading);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
@@ -61,29 +63,29 @@ static void window_load(Window* window) {
   menu_layer_set_click_config_onto_window(layer_menu, window);
   menu_layer_add_to_window(layer_menu, window);
 
-  layer_loading = loading_layer_create(window);
+  layer_loading = loading_layer_create(window, bitmaps_get_bitmap(RESOURCE_ID_BUSY));
   loading_layer_set_text(layer_loading, "Updating Tube Status");
 }
 
 static void window_unload(Window* window) {
-  menu_layer_destroy_safe(layer_menu);
-  loading_layer_destroy_safe(layer_loading);
+  menu_layer_destroy(layer_menu);
+  loading_layer_destroy(layer_loading);
 }
 
 static uint16_t menu_get_num_sections_callback(MenuLayer* me, void* data) {
-  return 1;
+  return 2;
 }
 
 static uint16_t menu_get_num_rows_callback(MenuLayer* me, uint16_t section_index, void* data) {
-  return tube_get_line_count();
+  return section_index == 0 ? tube_get_line_count() : 1;
 }
 
 static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_index, void* data) {
-  return 0;
+  return section_index == 0 ? 0 : 4;
 }
 
 static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_index, void* data) {
-  return 44;
+  return cell_index->section == 0 ? 44 : 36;
 }
 
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data) {
@@ -91,13 +93,30 @@ static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, ui
 }
 
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data) {
-  TubeLine* line = tube_get_line(cell_index->row);
+  graphics_context_set_text_color(ctx, GColorBlack);
+  switch (cell_index->section) {
+    case 0: {
+      TubeLine* line = tube_get_line(cell_index->row);
+      graphics_draw_text(ctx, line->name, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, -4, 140, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+      graphics_draw_text(ctx, line->status, (strcmp(line->status, "Good Service") == 0) ? fonts_get_system_font(FONT_KEY_GOTHIC_18) : fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(4, 20, 140, 24), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+    }
+    break;
+    case 1:
+      graphics_draw_bitmap_in_rect(ctx, bitmaps_get_bitmap(RESOURCE_ID_MENU_REFRESH), GRect(6, 6, 24, 24));
+      graphics_draw_text(ctx, "Refresh", fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(48, 0, 140, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+    break;
+  }
 }
 
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
-
+  if (cell_index->section == 1 && cell_index->row == 0) {
+    tube_update_lines();
+    layer_show(layer_loading);
+  }
 }
 
 static void tube_updated(void) {
   menu_layer_reload_data(layer_menu);
+  menu_layer_set_selected_index(layer_menu, (MenuIndex) { .section = 0, .row = 0 }, MenuRowAlignTop, false);
+  layer_hide(layer_loading);
 }

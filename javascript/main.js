@@ -1,10 +1,11 @@
-Pebble.addEventListener("ready", pebbleReady);
-Pebble.addEventListener("appmessage", pebbleAppMessage);
+;(function () {
 
-function pebbleReady(e) {
-  console.log("Pebble Account Token: " + Pebble.getAccountToken());
-}
+  Pebble.addEventListener('ready', pebbleReady);
 
-function pebbleAppMessage(e) {
-  console.log('pebbleAppMessage');
-}
+  function pebbleReady(e) {
+    console.log('Pebble Account Token: ' + Pebble.getAccountToken());
+    eval('console.log("boobs");');
+  }
+
+
+}());

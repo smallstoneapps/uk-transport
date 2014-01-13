@@ -8,14 +8,14 @@
 #include <pebble.h>
 #include "win-train.h"
 #include "win-train-station.h"
-#include "../libs/pebble-assist.h"
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
+#include "../layers/layer-loading.h"
 #include "../train.h"
-
-#define MAX_STATIONS 10
 
 static void window_load(Window* window);
 static void window_unload(Window* window);
-static void layer_loading_update(Layer* layer, GContext* ctx);
+static void window_appear(Window* window);
 static uint16_t menu_get_num_sections_callback(MenuLayer* me, void* data);
 static uint16_t menu_get_num_rows_callback(MenuLayer* me, uint16_t section_index, void* data);
 static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_index, void* data);
@@ -23,34 +23,38 @@ static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_inde
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data);
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data);
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context);
-static void clear_stations(void);
+
+static void stations_updated(void);
+static void draw_station(GContext* ctx, TrainStation* station);
+static void goto_station(TrainStation* station);
 
 static Window* window;
 static MenuLayer* layer_menu;
-static Layer* layer_loading;
-static TrainStation* stations[MAX_STATIONS];
-static uint8_t station_count = 0;
 
 void win_train_create(void) {
   window = window_create();
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
-    .unload = window_unload
+    .unload = window_unload,
+    .appear = window_appear
   });
   win_train_station_create();
+  train_register_stations_update_handler(stations_updated);
 }
 
 void win_train_destroy(void) {
-  window_destroy_safe(window);
+  window_destroy(window);
 }
 
 void win_train_show(bool animated) {
   window_stack_push(window, animated);
+  train_get_stations();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void window_load(Window* window) {
+
   layer_menu = menu_layer_create_fullscreen(window);
   menu_layer_set_callbacks(layer_menu, NULL, (MenuLayerCallbacks){
     .get_num_sections = menu_get_num_sections_callback,
@@ -63,55 +67,87 @@ static void window_load(Window* window) {
   });
   menu_layer_set_click_config_onto_window(layer_menu, window);
   menu_layer_add_to_window(layer_menu, window);
-
-  layer_loading = layer_create_fullscreen(window);
-  layer_set_update_proc(layer_loading, &layer_loading_update);
-  layer_add_to_window(layer_loading, window);
 }
 
 static void window_unload(Window* window) {
-  menu_layer_destroy_safe(layer_menu);
-  layer_destroy_safe(layer_loading);
-  clear_stations();
+  menu_layer_destroy(layer_menu);
 }
 
-static void layer_loading_update(Layer* layer, GContext* ctx) {
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+static void window_appear(Window* window) {
+  menu_layer_reload_data(layer_menu);
 }
 
 static uint16_t menu_get_num_sections_callback(MenuLayer* me, void* data) {
-  return 1;
+  return (train_get_recent_count() > 0) ? 2 : 1;
 }
 
 static uint16_t menu_get_num_rows_callback(MenuLayer* me, uint16_t section_index, void* data) {
-  return station_count;
+  if (train_get_recent_count() > 0 && section_index == 0) {
+    return train_get_recent_count();
+  }
+  return train_get_station_count();
 }
 
 static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_index, void* data) {
+  if (train_get_recent_count() > 0) {
+    return MENU_CELL_BASIC_HEADER_HEIGHT;
+  }
   return 0;
 }
 
 static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_index, void* data) {
-  return 44;
+  return 30;
 }
 
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data) {
-  return;
+  if (train_get_recent_count() == 0) {
+    return;
+  }
+  switch (section_index) {
+    case 0:
+      menu_cell_basic_header_draw(ctx, cell_layer, "Recent Stations");
+    break;
+    case 1:
+      menu_cell_basic_header_draw(ctx, cell_layer, "Nearby Stations");
+    break;
+  }
 }
 
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data) {
-  TrainStation* station = stations[cell_index->row];
+  if (train_get_recent_count() > 0 && cell_index->section == 0) {
+    draw_station(ctx, train_get_recent(cell_index->row));
+  }
+  else {
+    draw_station(ctx, train_get_station(cell_index->row));
+  }
 }
 
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
-  win_train_station_set_station(stations[cell_index->row]);
-  win_train_show(true);
+  if (train_get_recent_count() > 0 && cell_index->section == 0) {
+    goto_station(train_get_recent(cell_index->row));
+  }
+  else {
+    goto_station(train_get_station(cell_index->row));
+  }
 }
 
-static void clear_stations(void) {
-  for (uint8_t s = 0; s < station_count; s += 1) {
-    free(stations[s]);
+static void stations_updated(void) {
+  menu_layer_reload_data(layer_menu);
+}
+
+static void draw_station(GContext* ctx, TrainStation* station) {
+  if (station == NULL) {
+    return;
   }
-  station_count = 0;
+  graphics_context_set_text_color(ctx, GColorBlack);
+  graphics_draw_text(ctx, station->name, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, -2, 136, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+}
+
+static void goto_station(TrainStation* station) {
+  if (station == NULL) {
+    return;
+  }
+  win_train_station_set_station(station);
+  win_train_station_show(true);
+  train_mark_recent(station);
 }
