@@ -92,11 +92,13 @@ var Tube = (function () {
     }, 0);
   }
 
-  function titleize(str){
-    if (str == null) return '';
+  function titleize(str) {
+    if (str === null) {
+      return '';
+    }
     str  = String(str).toLowerCase();
-    return str.replace(/(?:^|\s|-)\S/g, function(c){ return c.toUpperCase(); });
-  };
+    return str.replace(/(?:^|\s|-)\S/g, function (c) { return c.toUpperCase(); });
+  }
 
 
 }());

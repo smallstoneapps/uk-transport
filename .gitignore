@@ -5,7 +5,7 @@ build
 pebble/.lock-*
 
 # Generated Javascript
-pebble/src/js
+pebble/src/js/*.js
 
 # OS guff
 .DS_Store

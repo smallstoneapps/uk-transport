@@ -38,8 +38,8 @@ var Train = (function () {
         lat: position.coords.latitude,
         page: 1,
         rpp: 10,
-        api_key: '19490bb45f53178a0b508d37569b9910',
-        app_id: '633e7987'
+        api_key: Config.transportApi.api_key,
+        app_id: Config.transportApi.app_id
       };
       superagent.get('http://transportapi.com/v3/uk/train/stations/near.json', requestData).end(requestCallback);
     }
@@ -67,8 +67,8 @@ var Train = (function () {
   function opTrainDepartures(data) {
     var code = data;
     var requestData = {
-      api_key: '19490bb45f53178a0b508d37569b9910',
-      app_id: '633e7987',
+      api_key: config.transportApi.api_key,
+      app_id: config.transportApi.app_id,
       limit: 10
     };
     superagent.get('http://transportapi.com/v3/uk/train/station/' + code + '/live.json', requestData).end(requestCallback);
