@@ -21,7 +21,7 @@ Find your nearest train stations and bus stops, and see the upcoming departures.
 
 [![Install QR Code](http://smallstoneapps.s3.amazonaws.com/uk-transport/qr/uk-transport_0-1-1_qr.png)](http://smallstoneapps.s3.amazonaws.com/uk-transport/builds/uk-transport_0-1-1.pbw)
 
-**Latest PBW:** [UK Transport 0.1.0](http://smallstoneapps.s3.amazonaws.com/uk-transport/builds/uk-transport_0-1-1.pbw)
+**Latest PBW:** [UK Transport 0.1.1](http://smallstoneapps.s3.amazonaws.com/uk-transport/builds/uk-transport_0-1-1.pbw)
 
 --
 
