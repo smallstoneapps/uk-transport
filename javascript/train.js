@@ -67,8 +67,8 @@ var Train = (function () {
   function opTrainDepartures(data) {
     var code = data;
     var requestData = {
-      api_key: config.transportApi.api_key,
-      app_id: config.transportApi.app_id,
+      api_key: Config.transportApi.api_key,
+      app_id: Config.transportApi.app_id,
       limit: 10
     };
     superagent.get('http://transportapi.com/v3/uk/train/station/' + code + '/live.json', requestData).end(requestCallback);

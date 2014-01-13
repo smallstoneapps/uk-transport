@@ -38,8 +38,8 @@ var Bus = (function () {
         lat: position.coords.latitude,
         page: 1,
         rpp: 10,
-        api_key: config.transportApi.api_key,
-        app_id: config.transportApi.app_id
+        api_key: Config.transportApi.api_key,
+        app_id: Config.transportApi.app_id
       };
       superagent.get('http://transportapi.com/v3/uk/bus/stops/near.json', requestData).end(requestCallback);
     }
@@ -68,8 +68,8 @@ var Bus = (function () {
   function opBusDepartures(data) {
     var code = data;
     var requestData = {
-      api_key: config.transportApi.api_key,
-      app_id: config.transportApi.app_id,
+      api_key: Config.transportApi.api_key,
+      app_id: Config.transportApi.app_id,
       group: 'no'
     };
     superagent.get('http://transportapi.com/v3/uk/bus/stop/' + code + '/live.json', requestData).end(requestCallback);
