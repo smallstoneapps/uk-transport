@@ -1,4 +1,4 @@
-![UK Transport Banner](http://smallstoneapps.s3.amazonaws.com/uk-transport/marketing/banner_01_train.png)
+![UK Transport Banner](http://smallstoneapps.s3.amazonaws.com/uk-transport/marketing/banner_02_train.png)
 
 The ultimate Pebble app for people in the UK who use public transport.
 
