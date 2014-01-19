@@ -66,7 +66,7 @@ static void window_load(Window* window) {
   menu_layer_set_click_config_onto_window(layer_menu, window);
   menu_layer_add_to_window(layer_menu, window);
 
-  layer_loading = loading_layer_create(window, bitmaps_get_bitmap(RESOURCE_ID_BUSY));
+  layer_loading = loading_layer_create(window);
   loading_layer_set_text(layer_loading, "Locating Nearest Bus Stops");
 }
 

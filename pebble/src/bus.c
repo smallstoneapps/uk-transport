@@ -7,9 +7,8 @@
 
 #include <pebble.h>
 #include "bus.h"
-#include "train.h"
 #include "libs/message-queue/message-queue.h"
-#include "libs/data-processor.h"
+#include "libs/data-processor/data-processor.h"
 
 static void message_handler(char* operation, char* data);
 static void handle_stops(char* data);
@@ -27,6 +26,11 @@ BusUpdateHandler departures_update_handler = NULL;
 
 void bus_init(void) {
   mqueue_register_handler("BUS", message_handler);
+}
+
+void bus_deinit(void) {
+  destroy_departures();
+  destroy_stops();
 }
 
 void bus_get_stops(void) {
@@ -73,7 +77,6 @@ static void message_handler(char* operation, char* data) {
 }
 
 static void handle_stops(char* data) {
-  train_cleanup();
   destroy_stops();
   data_processor_init(data, '|');
   data_processor_get_uint8(&num_stops);
@@ -100,7 +103,6 @@ static void destroy_stops(void) {
 }
 
 static void handle_departures(char* data) {
-  train_cleanup();
   destroy_departures();
   data_processor_init(data, '|');
   data_processor_get_uint8(&num_departures);

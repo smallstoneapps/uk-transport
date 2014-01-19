@@ -21,14 +21,14 @@
 #define MENU_SECTION_FOOTER 1
 
 #define MENU_ROWS_MAIN 3
-#define MENU_ROWS_FOOTER 2
+#define MENU_ROWS_FOOTER 1
 
 #define MENU_ROW_MAIN_TUBE 0
 #define MENU_ROW_MAIN_BUS 1
 #define MENU_ROW_MAIN_TRAIN 2
 
-#define MENU_ROW_FOOTER_SETTINGS 0
-#define MENU_ROW_FOOTER_ABOUT 1
+#define MENU_ROW_FOOTER_SETTINGS 1
+#define MENU_ROW_FOOTER_ABOUT 0
 
 static void window_load(Window* window);
 static void window_unload(Window* window);
@@ -50,7 +50,7 @@ void win_main_menu_create(void) {
   win_bus_create();
   win_tube_create();
   win_train_create();
-  win_settings_create();
+  // win_settings_create();
   win_about_create();
 
   window = window_create();
@@ -63,7 +63,7 @@ void win_main_menu_create(void) {
 void win_main_menu_destroy(void) {
   window_destroy(window);
   win_about_destroy();
-  win_settings_destroy();
+  // win_settings_destroy();
   win_train_destroy();
   win_tube_destroy();
   win_bus_destroy();

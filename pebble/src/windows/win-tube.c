@@ -14,6 +14,7 @@
 
 static void window_load(Window* window);
 static void window_unload(Window* window);
+static void window_disappear(Window* window);
 static uint16_t menu_get_num_sections_callback(MenuLayer* me, void* data);
 static uint16_t menu_get_num_rows_callback(MenuLayer* me, uint16_t section_index, void* data);
 static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_index, void* data);
@@ -32,7 +33,8 @@ void win_tube_create(void) {
   window = window_create();
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
-    .unload = window_unload
+    .unload = window_unload,
+    .disappear = window_disappear
   });
   tube_register_update_handler(tube_updated);
 }
@@ -63,13 +65,17 @@ static void window_load(Window* window) {
   menu_layer_set_click_config_onto_window(layer_menu, window);
   menu_layer_add_to_window(layer_menu, window);
 
-  layer_loading = loading_layer_create(window, bitmaps_get_bitmap(RESOURCE_ID_BUSY));
+  layer_loading = loading_layer_create(window);
   loading_layer_set_text(layer_loading, "Updating Tube Status");
 }
 
 static void window_unload(Window* window) {
   menu_layer_destroy(layer_menu);
   loading_layer_destroy(layer_loading);
+}
+
+static void window_disappear(Window* window) {
+  layer_hide(layer_loading);
 }
 
 static uint16_t menu_get_num_sections_callback(MenuLayer* me, void* data) {

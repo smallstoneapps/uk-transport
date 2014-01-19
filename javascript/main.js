@@ -1,10 +1,11 @@
-;(function () {
+/* global Pebble */
+
+(function () {
+  "use strict";
 
   Pebble.addEventListener('ready', pebbleReady);
 
-  function pebbleReady(e) {
-    console.log('Pebble Account Token: ' + Pebble.getAccountToken());
+  function pebbleReady() {
   }
-
 
 }());

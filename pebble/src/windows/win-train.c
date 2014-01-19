@@ -30,6 +30,7 @@ static void goto_station(TrainStation* station);
 
 static Window* window;
 static MenuLayer* layer_menu;
+static LoadingLayer* layer_loading;
 
 void win_train_create(void) {
   window = window_create();
@@ -49,12 +50,12 @@ void win_train_destroy(void) {
 void win_train_show(bool animated) {
   window_stack_push(window, animated);
   train_get_stations();
+  layer_show(layer_loading);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void window_load(Window* window) {
-
   layer_menu = menu_layer_create_fullscreen(window);
   menu_layer_set_callbacks(layer_menu, NULL, (MenuLayerCallbacks){
     .get_num_sections = menu_get_num_sections_callback,
@@ -67,10 +68,14 @@ static void window_load(Window* window) {
   });
   menu_layer_set_click_config_onto_window(layer_menu, window);
   menu_layer_add_to_window(layer_menu, window);
+
+  layer_loading = loading_layer_create(window);
+  loading_layer_set_text(layer_loading, "Finding Nearest Train Stations");
 }
 
 static void window_unload(Window* window) {
   menu_layer_destroy(layer_menu);
+  loading_layer_destroy(layer_loading);
 }
 
 static void window_appear(Window* window) {
@@ -133,6 +138,7 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
 
 static void stations_updated(void) {
   menu_layer_reload_data(layer_menu);
+  layer_hide(layer_loading);
 }
 
 static void draw_station(GContext* ctx, TrainStation* station) {

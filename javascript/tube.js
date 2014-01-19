@@ -1,6 +1,10 @@
-var Tube = (function () {
+/* global http */
+/* exported Tube */
 
-  var StatusOrdering = [ 'Suspended', 'Part Suspended', 'Planned Closure', 
+var Tube = (function () {
+  "use strict";
+
+  var StatusOrdering = [ 'Suspended', 'Part Suspended', 'Planned Closure',
     'Part Closure', 'Severe Delays', 'Reduced Service', 'Bus Service',
     'Minor Delays', 'Good Service' ];
 
@@ -23,35 +27,26 @@ var Tube = (function () {
     console.log('UK Transport // Tube // Payload // ' + JSON.stringify(payload));
     var operation = payload.operation.toLowerCase();
     switch (operation) {
-      case 'update':
-        opLineStatus(e.payload.data);
+    case 'update':
+      opLineStatus(e.payload.data);
       break;
     }
   }
 
   function opLineStatus(data) {
-    superagent.get('http://api.tubeupdates.com/?method=get.status&format=json').end(tubeUpdateResponse);
-    function tubeUpdateResponse(response) {
-      if (response.status !== 200) {
-        console.log('Request for tube updates returned a ' + response.status + ' error');
-        return;
-      }
-      if (response.text && ! response.body) {
-        response.body = JSON.parse(response.text);
-      }
-
-      if (! response.body || ! response.body.response || ! response.body.response.lines) {
+    http.get('http://api.tubeupdates.com/?method=get.status&format=json', data, function (err, data) {
+      if (! data || ! data.response || ! data.response.lines) {
         console.log('Response from tube update API was invalid.');
         return;
       }
       var updateData = [];
-      var lines = response.body.response.lines;
+      var lines = data.response.lines;
       lines = lines.map(function (line) {
         var betterLine = {
           name: line.name.replace('&amp;', '&'),
           statuses: line.status.split(',')
         };
-        betterLine.ok = (betterLine.statuses[0] == 'good service') ? true : false;
+        betterLine.ok = (betterLine.statuses[0] === 'good service') ? true : false;
         betterLine.statuses = betterLine.statuses.map(function (str) {
           return titleize(str.trim());
         });
@@ -83,7 +78,7 @@ var Tube = (function () {
           console.log('NACK:' + JSON.stringify(e));
         }
       );
-    }
+    });
   }
 
   function statusWeight(line) {

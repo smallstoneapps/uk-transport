@@ -44,4 +44,9 @@ static void deinit(void) {
   settings_save();
   bitmaps_cleanup();
   fonts_cleanup();
+
+  mqueue_deinit();
+  tube_deinit();
+  bus_deinit();
+  train_deinit();
 }

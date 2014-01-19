@@ -1,4 +1,9 @@
+/* global http */
+/* global Config */
+/* exported Train */
+
 var Train = (function () {
+  "use strict";
 
   Pebble.addEventListener('ready', pebbleReady);
 
@@ -16,19 +21,21 @@ var Train = (function () {
     if (group !== 'train') {
       return;
     }
-    console.log('UK Transport // Train // Payload // ' + JSON.stringify(payload));
+    if (Config.debug) {
+      console.log('UK Transport // Train // Payload // ' + JSON.stringify(payload));
+    }
     var operation = payload.operation.toLowerCase();
     switch (operation) {
-      case 'stations':
-        opTrainStations(e.payload.data);
+    case 'stations':
+      opTrainStations(e.payload.data);
       break;
-      case 'departures':
-        opTrainDepartures(e.payload.data);
+    case 'departures':
+      opTrainDepartures(e.payload.data);
       break;
     }
   }
 
-  function opTrainStations(data) {
+  function opTrainStations() {
 
     navigator.geolocation.getCurrentPosition(locationCallback);
 
@@ -38,19 +45,22 @@ var Train = (function () {
         lat: position.coords.latitude,
         page: 1,
         rpp: 10,
-        api_key: Config.transportApi.api_key,
-        app_id: Config.transportApi.app_id
+        /*jshint -W106*/
+        api_key: Config.transportApi.apiKey,
+        app_id: Config.transportApi.appId
+        /*jshint +W106*/
       };
-      superagent.get('http://transportapi.com/v3/uk/train/stations/near.json', requestData).end(requestCallback);
+      http.get('http://transportapi.com/v3/uk/train/stations/near.json', requestData, requestCallback);
     }
 
-    function requestCallback(response) {
-      var stationData = JSON.parse(response.text);
-      var stations = stationData.stations;
+    function requestCallback(err, data) {
+      var stations = data.stations;
       var responseData = [];
       responseData.push(stations.length);
       stations.forEach(function (station) {
+        /*jshint -W106*/
         responseData.push(station.station_code);
+        /*jshint +W106*/
         responseData.push(station.name);
       });
       Pebble.sendAppMessage({ group: 'TRAIN', operation: 'STATIONS', data: responseData.join('|') },
@@ -67,20 +77,21 @@ var Train = (function () {
   function opTrainDepartures(data) {
     var code = data;
     var requestData = {
-      api_key: Config.transportApi.api_key,
-      app_id: Config.transportApi.app_id,
+      /*jshint -W106*/
+      api_key: Config.transportApi.apiKey,
+      app_id: Config.transportApi.appId,
+      /*jshint +W106*/
       limit: 10
     };
-    superagent.get('http://transportapi.com/v3/uk/train/station/' + code + '/live.json', requestData).end(requestCallback);
-
-    function requestCallback(response) {
-      var departureData = JSON.parse(response.text);
-      var departures = departureData.departures.all;
+    http.get('http://transportapi.com/v3/uk/train/station/' + code + '/live.json', requestData, function (err, data) {
+      var departures = data.departures.all;
       var responseData = [];
       responseData.push(departures.length);
       departures.forEach(function (departure) {
+        /*jshint -W106*/
         responseData.push(departure.destination_name);
         responseData.push(departure.expected_departure_time);
+        /*jshint +W106*/
       });
       Pebble.sendAppMessage({ group: 'TRAIN', operation: 'DEPARTURES', data: responseData.join('|') },
         function ack(e) {
@@ -90,7 +101,7 @@ var Train = (function () {
           console.log('NACK:' + JSON.stringify(e));
         }
       );
-    }
+    });
   }
 
 }());

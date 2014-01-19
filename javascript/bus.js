@@ -1,4 +1,9 @@
+/* global http */
+/* global Config */
+/* exported Bus */
+
 var Bus = (function () {
+  "use strict";
 
   Pebble.addEventListener('ready', pebbleReady);
 
@@ -6,7 +11,9 @@ var Bus = (function () {
     if (! e.ready) {
       return;
     }
-    console.log('UK Transport // Bus // Ready');
+    if (Config.debug) {
+      console.log('UK Transport // Bus // Ready');
+    }
     Pebble.addEventListener('appmessage', pebbleAppMessage);
   }
 
@@ -21,14 +28,14 @@ var Bus = (function () {
     switch (operation) {
       case 'stops':
         opBusStops(e.payload.data);
-      break;
+        break;
       case 'departures':
         opBusDepartures(e.payload.data);
-      break;
+        break;
     }
   }
 
-  function opBusStops(data) {
+  function opBusStops() {
 
     navigator.geolocation.getCurrentPosition(locationCallback);
 
@@ -38,15 +45,22 @@ var Bus = (function () {
         lat: position.coords.latitude,
         page: 1,
         rpp: 10,
-        api_key: Config.transportApi.api_key,
-        app_id: Config.transportApi.app_id
+        /*jshint -W106*/
+        api_key: Config.transportApi.apiKey,
+        app_id: Config.transportApi.appId
+        /*jshint +W106*/
       };
-      superagent.get('http://transportapi.com/v3/uk/bus/stops/near.json', requestData).end(requestCallback);
+      http.get('http://transportapi.com/v3/uk/bus/stops/near.json', requestData, requestCallback);
     }
 
-    function requestCallback(response) {
-      var stopData = JSON.parse(response.text);
-      var stops = stopData.stops;
+    function requestCallback(err, data) {
+      if (err) {
+        return console.log(err);
+      }
+      if (! data) {
+        return console.log(new Error('Lack of data!'));
+      }
+      var stops = data.stops;
       var responseData = [];
       responseData.push(stops.length);
       stops.forEach(function (stop) {
@@ -68,21 +82,24 @@ var Bus = (function () {
   function opBusDepartures(data) {
     var code = data;
     var requestData = {
-      api_key: Config.transportApi.api_key,
-      app_id: Config.transportApi.app_id,
+      /*jshint -W106*/
+      api_key: Config.transportApi.apiKey,
+      app_id: Config.transportApi.appId,
+      /*jshint +W106*/
       group: 'no'
     };
-    superagent.get('http://transportapi.com/v3/uk/bus/stop/' + code + '/live.json', requestData).end(requestCallback);
+    http.get('http://transportapi.com/v3/uk/bus/stop/' + code + '/live.json', requestData, requestCallback);
 
-    function requestCallback(response) {
-      var departureData = JSON.parse(response.text);
-      var departures = departureData.departures.all;
+    function requestCallback(err, data) {
+      var departures = data.departures.all;
       var responseData = [];
       responseData.push(departures.length);
       departures.forEach(function (departure) {
         responseData.push(departure.line);
         responseData.push(departure.direction);
+        /*jshint -W106*/
         responseData.push(departure.best_departure_estimate);
+        /*jshint +W106*/
       });
       Pebble.sendAppMessage({ group: 'BUS', operation: 'DEPARTURES', data: responseData.join('|') },
         function ack(e) {

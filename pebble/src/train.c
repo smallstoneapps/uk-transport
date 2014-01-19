@@ -9,7 +9,7 @@
 #include "train.h"
 
 #include "libs/message-queue/message-queue.h"
-#include "libs/data-processor.h"
+#include "libs/data-processor/data-processor.h"
 
 #define MAX_RECENT_STATIONS 3
 
@@ -40,7 +40,7 @@ void train_init(void) {
   mqueue_register_handler("TRAIN", message_handler);
 }
 
-void train_cleanup(void) {
+void train_deinit(void) {
   destroy_departures();
   destroy_stations();
 }

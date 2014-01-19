@@ -8,7 +8,7 @@
 #include <pebble.h>
 #include "tube.h"
 #include "libs/message-queue/message-queue.h"
-#include "libs/data-processor.h"
+#include "libs/data-processor/data-processor.h"
 
 static void message_handler(char* operation, char* data);
 static void handle_update(char* data);
@@ -21,6 +21,10 @@ uint8_t num_lines = 0;
 void tube_init(void) {
   mqueue_register_handler("TUBE", message_handler);
   num_lines = 0;
+}
+
+void tube_deinit(void) {
+  destroy_lines();
 }
 
 void tube_update_lines(void) {

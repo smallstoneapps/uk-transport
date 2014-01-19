@@ -7,3 +7,9 @@
 [submodule "pebble/src/libs/message-queue"]
 	path = pebble/src/libs/message-queue
 	url = https://gist.github.com/7795357.git
+[submodule "pebble/src/libs/scroll-text-layer"]
+	path = pebble/src/libs/scroll-text-layer
+	url = https://gist.github.com/8497835.git
+[submodule "pebble/src/libs/data-processor"]
+	path = pebble/src/libs/data-processor
+	url = https://gist.github.com/8408335.git

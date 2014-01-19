@@ -22,7 +22,7 @@ typedef struct {
 typedef void (*TrainUpdateHandler)(void);
 
 void train_init(void);
-void train_cleanup(void);
+void train_deinit(void);
 
 void train_get_stations(void);
 uint8_t train_get_station_count(void);

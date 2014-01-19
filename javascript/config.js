@@ -1,6 +1,9 @@
+/* exported Config */
+
 var Config = {
   transportApi: {
-    api_key: '<<FILL_OUT>>',
-    app_id: '<<FILL_OUT>>'
-  }
+    apiKey: '19490bb45f53178a0b508d37569b9910',
+    appId: '633e7987'
+  },
+  debug: true
 };

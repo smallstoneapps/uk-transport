@@ -24,6 +24,7 @@ typedef struct {
 typedef void (*BusUpdateHandler)(void);
 
 void bus_init(void);
+void bus_deinit(void);
 
 void bus_get_stops(void);
 uint8_t bus_get_stop_count(void);
