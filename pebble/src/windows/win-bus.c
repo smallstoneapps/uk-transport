@@ -103,7 +103,11 @@ static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuI
 }
 
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
-  win_bus_stop_set_stop(bus_get_stop(cell_index->row));
+  BusStop* stop = bus_get_stop(cell_index->row);
+  if (stop == NULL) {
+    return;
+  }
+  win_bus_stop_set_stop(stop);
   win_bus_stop_show(true);
 }
 

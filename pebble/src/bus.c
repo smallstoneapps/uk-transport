@@ -34,6 +34,7 @@ void bus_deinit(void) {
 }
 
 void bus_get_stops(void) {
+  destroy_stops();
   mqueue_add("BUS", "STOPS", " ");
 }
 

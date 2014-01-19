@@ -46,6 +46,7 @@ void train_deinit(void) {
 }
 
 void train_get_stations(void) {
+  destroy_stations();
   mqueue_add("TRAIN", "STATIONS", "10");
 }
 
