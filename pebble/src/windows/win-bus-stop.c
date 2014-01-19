@@ -119,8 +119,10 @@ static void layer_header_update(Layer* layer, GContext* ctx) {
   graphics_draw_text(ctx, current_stop->name, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD), GRect(4, 2, 136, 22), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
 
-
 static void departures_update(void) {
+  if (! window_stack_contains_window(window)) {
+    return;
+  }
   menu_layer_reload_data(layer_menu);
   layer_hide(layer_loading);
 }

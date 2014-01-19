@@ -122,6 +122,9 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
 }
 
 static void tube_updated(void) {
+  if (! window_stack_contains_window(window)) {
+    return;
+  }
   menu_layer_reload_data(layer_menu);
   menu_layer_set_selected_index(layer_menu, (MenuIndex) { .section = 0, .row = 0 }, MenuRowAlignTop, false);
   layer_hide(layer_loading);

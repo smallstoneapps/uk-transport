@@ -46,6 +46,6 @@ static void update_loading_layer(Layer* layer, GContext* ctx) {
   graphics_context_set_text_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
   GSize text_size = graphics_text_layout_get_content_size(data->message, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD), GRect(8, 0, 144 - 16, 150), GTextOverflowModeWordWrap, GTextAlignmentCenter);
-  GRect text_pos = GRect(8, 75 - (text_size.h / 2), 144 - 16, text_size.h);
+  GRect text_pos = GRect(8, 75 - (text_size.h / 2) - 4, 144 - 16, text_size.h);
   graphics_draw_text(ctx, data->message, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD), text_pos, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }

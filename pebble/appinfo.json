@@ -3,8 +3,8 @@
   "shortName": "UK Transport",
   "longName": "UK Transport",
   "companyName": "Matthew Tole",
-  "versionCode": 3,
-  "versionLabel": "0.2.0",
+  "versionCode": 5,
+  "versionLabel": "0.2.2",
   "watchapp": {
     "watchface": false
   },

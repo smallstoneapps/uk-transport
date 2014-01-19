@@ -54,6 +54,9 @@ uint8_t train_get_station_count(void) {
 }
 
 TrainStation* train_get_station(uint8_t pos) {
+  if (pos >= num_stations) {
+    return NULL;
+  }
   return stations[pos];
 }
 

@@ -42,6 +42,9 @@ uint8_t bus_get_stop_count(void) {
 }
 
 BusStop* bus_get_stop(uint8_t pos) {
+  if (pos >= num_stops) {
+    return NULL;
+  }
   return stops[pos];
 }
 

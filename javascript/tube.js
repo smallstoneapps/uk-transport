@@ -1,4 +1,6 @@
 /* global http */
+/* global Config */
+/* global PblAnalytics */
 /* exported Tube */
 
 var Tube = (function () {
@@ -14,7 +16,9 @@ var Tube = (function () {
     if (! e.ready) {
       return;
     }
-    console.log('UK Transport // Tube // Ready');
+    if (Config.debug) {
+      console.log('UK Transport // Tube // Ready');
+    }
     Pebble.addEventListener('appmessage', pebbleAppMessage);
   }
 
@@ -24,7 +28,9 @@ var Tube = (function () {
     if (group !== 'tube') {
       return;
     }
-    console.log('UK Transport // Tube // Payload // ' + JSON.stringify(payload));
+    if (Config.debug) {
+      console.log('UK Transport // Tube // Payload // ' + JSON.stringify(payload));
+    }
     var operation = payload.operation.toLowerCase();
     switch (operation) {
     case 'update':
@@ -34,9 +40,12 @@ var Tube = (function () {
   }
 
   function opLineStatus(data) {
+    PblAnalytics.trackEvent('tube-update');
     http.get('http://api.tubeupdates.com/?method=get.status&format=json', data, function (err, data) {
       if (! data || ! data.response || ! data.response.lines) {
-        console.log('Response from tube update API was invalid.');
+        if (Config.debug) {
+          console.log('Response from tube update API was invalid.');
+        }
         return;
       }
       var updateData = [];
@@ -70,14 +79,7 @@ var Tube = (function () {
         updateData.push(line.statuses.join(', '));
       });
 
-      Pebble.sendAppMessage({ group: 'TUBE', operation: 'UPDATE', data: updateData.join('|') },
-        function ack(e) {
-          console.log('ACK:' + JSON.stringify(e));
-        },
-        function nack(e) {
-          console.log('NACK:' + JSON.stringify(e));
-        }
-      );
+      Pebble.sendAppMessage({ group: 'TUBE', operation: 'UPDATE', data: updateData.join('|') });
     });
   }
 

@@ -137,6 +137,9 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
 }
 
 static void stations_updated(void) {
+  if (! window_stack_contains_window(window)) {
+    return;
+  }
   menu_layer_reload_data(layer_menu);
   layer_hide(layer_loading);
 }

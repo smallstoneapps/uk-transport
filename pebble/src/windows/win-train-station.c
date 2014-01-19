@@ -124,6 +124,9 @@ static void layer_header_update(Layer* layer, GContext* ctx) {
 }
 
 static void departures_update(void) {
+  if (! window_stack_contains_window(window)) {
+    return;
+  }
   menu_layer_reload_data(layer_menu);
   layer_hide(layer_loading);
 }
