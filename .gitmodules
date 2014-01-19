@@ -13,3 +13,6 @@
 [submodule "pebble/src/libs/data-processor"]
 	path = pebble/src/libs/data-processor
 	url = https://gist.github.com/8408335.git
+[submodule "pebble/src/libs/font-loader"]
+	path = pebble/src/libs/font-loader
+	url = https://gist.github.com/7811460.git
