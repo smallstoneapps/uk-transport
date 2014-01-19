@@ -19,13 +19,13 @@ Find your nearest train stations and bus stops, and see the upcoming departures.
 
 *You will need the latest Pebble 2.0 (BETA5) installed on your Pebble for this app to run.*
 
-[![Install QR Code](http://smallstoneapps.s3.amazonaws.com/uk-transport/qr/uk-transport_0-2-2_qr.png)][2]
+[![Install QR Code](http://smallstoneapps.s3.amazonaws.com/uk-transport/qr/uk-transport_0-2-3_qr.png)][2]
 
-**Latest PBW:** [UK Transport 0.2.2][2]
+**Latest PBW:** [UK Transport 0.2.3][2]
 
 --
 
 [![Analytics](https://ga-beacon.appspot.com/UA-37478501-3/smallstoneapps/uk-transport/readme)](https://github.com/igrigorik/ga-beacon)
 
 [1]: pebble://appstore/52d3086712ea3dec7e00001b
-[2]: http://smallstoneapps.s3.amazonaws.com/uk-transport/builds/uk-transport_0-2-2.pbw
+[2]: http://smallstoneapps.s3.amazonaws.com/uk-transport/builds/uk-transport_0-2-3.pbw
