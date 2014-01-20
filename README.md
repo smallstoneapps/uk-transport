@@ -4,7 +4,7 @@ The ultimate Pebble app for people in the UK who use public transport.
 
 Find your nearest train stations and bus stops, and see the upcoming departures. Also, see the status of the London Underground network.
 
-[![Available on the Pebble App Store](http://pblweb.com/badge/52d3086712ea3dec7e00001b/black/medium/)][1]
+[![Available on the Pebble App Store](http://dev.pblweb.com/badge/52d3086712ea3dec7e00001b/black/medium/)][1]
 
 --
 
