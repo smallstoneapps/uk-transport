@@ -42,7 +42,7 @@ var Train = (function () {
 
     PblAnalytics.trackEvent('train-stations');
 
-    navigator.geolocation.getCurrentPosition(locationCallback);
+    navigator.geolocation.getCurrentPosition(locationCallback, locationError);
 
     function locationCallback(position) {
       var requestData = {
@@ -56,6 +56,10 @@ var Train = (function () {
         /*jshint +W106*/
       };
       http.get('http://transportapi.com/v3/uk/train/stations/near.json', requestData, requestCallback);
+    }
+
+    function locationError(err) {
+      console.log(err);
     }
 
     function requestCallback(err, data) {

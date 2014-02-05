@@ -42,7 +42,7 @@ var Bus = (function () {
 
     PblAnalytics.trackEvent('bus-stops');
 
-    navigator.geolocation.getCurrentPosition(locationCallback);
+    navigator.geolocation.getCurrentPosition(locationCallback, locationError);
 
     function locationCallback(position) {
       var requestData = {
@@ -56,6 +56,10 @@ var Bus = (function () {
         /*jshint +W106*/
       };
       http.get('http://transportapi.com/v3/uk/bus/stops/near.json', requestData, requestCallback);
+    }
+
+    function locationError(err) {
+      console.log(err);
     }
 
     function requestCallback(err, data) {
