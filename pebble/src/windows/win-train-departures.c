@@ -2,11 +2,11 @@
  * UK Transport
  * Copyright (C) 2013 Matthew Tole
  *
- * windows/train-station.c
+ * windows/win-train-departures.c
  ***/
 
 #include <pebble.h>
-#include "win-train-station.h"
+#include "win-train-departures.h"
 #include "../libs/bitmap-loader/bitmap-loader.h"
 #include "../libs/pebble-assist/pebble-assist.h"
 #include "../layers/layer-loading.h"
@@ -31,7 +31,7 @@ static LoadingLayer* layer_loading;
 static Layer* layer_header;
 static TrainStation* current_station = NULL;
 
-void win_train_station_create(void) {
+void win_train_departures_create(void) {
   window = window_create();
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
@@ -40,17 +40,17 @@ void win_train_station_create(void) {
   train_register_departures_update_handler(departures_update);
 }
 
-void win_train_station_destroy(void) {
+void win_train_departures_destroy(void) {
   window_destroy(window);
 }
 
-void win_train_station_show(bool animated) {
+void win_train_departures_show(bool animated) {
   window_stack_push(window, animated);
   train_get_departures(current_station);
   layer_show(layer_loading);
 }
 
-void win_train_station_set_station(TrainStation* station) {
+void win_train_departures_set_station(TrainStation* station) {
   current_station = station;
 }
 

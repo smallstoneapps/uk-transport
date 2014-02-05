@@ -11,7 +11,7 @@
 #include "win-main-menu.h"
 #include "win-bus.h"
 #include "win-tube.h"
-#include "win-train.h"
+#include "win-train-stations.h"
 #include "win-settings.h"
 #include "win-about.h"
 

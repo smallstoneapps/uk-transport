@@ -2,12 +2,12 @@
  * UK Transport
  * Copyright (C) 2013 Matthew Tole
  *
- * windows/train.c
+ * windows/win-train-stations.c
  ***/
 
 #include <pebble.h>
-#include "win-train.h"
-#include "win-train-station.h"
+#include "win-train-departures.h"
+#include "win-train-stations.h"
 #include "../libs/pebble-assist/pebble-assist.h"
 #include "../libs/bitmap-loader/bitmap-loader.h"
 #include "../layers/layer-loading.h"
@@ -39,7 +39,7 @@ void win_train_create(void) {
     .unload = window_unload,
     .appear = window_appear
   });
-  win_train_station_create();
+  win_train_departures_create();
   train_register_stations_update_handler(stations_updated);
 }
 
@@ -156,7 +156,7 @@ static void goto_station(TrainStation* station) {
   if (station == NULL) {
     return;
   }
-  win_train_station_set_station(station);
-  win_train_station_show(true);
+  win_train_departures_set_station(station);
+  win_train_departures_show(true);
   train_mark_recent(station);
 }

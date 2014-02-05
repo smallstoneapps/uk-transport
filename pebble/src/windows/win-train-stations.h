@@ -2,7 +2,7 @@
  * UK Transport
  * Copyright (C) 2013 Matthew Tole
  *
- * windows/train.h
+ * windows/win-train-stations.h
  ***/
 
 #pragma once
