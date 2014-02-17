@@ -6,6 +6,9 @@ Find your nearest train stations and bus stops, and see the upcoming departures.
 
 [![Available on the Pebble App Store](http://dev.pblweb.com/badge/52d3086712ea3dec7e00001b/black/medium/)][1]
 
+#### Featured on BBC Breakfast
+![BBC Breakfast Screenshot](https://smallstoneapps.s3.amazonaws.com/uk-transport/marketing/bbc-breakfast-2014-02-15.png)
+
 --
 
 #### Screenshots
