@@ -1,68 +1,83 @@
-/* global http */
-/* global Config */
-/* global PblAnalytics */
 /* exported Train */
 
-var Train = (function () {
-  "use strict";
+var Train = function (options) {
+  this.pebble = options.pebble;
+  this.http = options.http;
+  this.debug = options.debug;
+  this.location = options.location;
+  this.analytics = options.analytics || null;
+  this.transportApi = options.transportApi;
+  this.version = options.version;
 
-  Pebble.addEventListener('ready', pebbleReady);
-
-  function pebbleReady(e) {
-    if (! e.ready) {
+  this.onPebbleReady = function (event) {
+    if (! event.ready) {
       return;
     }
-    if (Config.debug) {
-      console.log('UK Transport // Train // Ready');
+    if (this.debug) {
+      console.log('UK Transport // ' + this.version + ' // Train // Ready');
     }
-    Pebble.addEventListener('appmessage', pebbleAppMessage);
-  }
+    this.pebble.addEventListener('appmessage', this.onPebbleAppMessage.bind(this));
+  };
 
-  function pebbleAppMessage(e) {
-    var payload = e.payload;
+  this.onPebbleAppMessage = function (event) {
+    var payload = event.payload;
     var group = payload.group.toLowerCase();
     if (group !== 'train') {
       return;
     }
-    if (Config.debug) {
+    if (this.debug) {
       console.log('UK Transport // Train // Payload // ' + JSON.stringify(payload));
     }
     var operation = payload.operation.toLowerCase();
     switch (operation) {
     case 'stations':
-      opTrainStations(e.payload.data);
+      opTrainStations.call(this, payload.data);
       break;
     case 'departures':
-      opTrainDepartures(e.payload.data);
+      opTrainDepartures.call(this, payload.data);
       break;
     }
-  }
+  };
 
   function opTrainStations() {
 
-    PblAnalytics.trackEvent('train-stations');
+    if (this.analytics) {
+      this.analytics.trackEvent('train-stations');
+    }
 
-    navigator.geolocation.getCurrentPosition(locationCallback, locationError);
+    var timeLocation = new Date();
+    var timeLookup = null;
+
+    var locationOptions = {
+      enableHighAccuracy: false,
+      timeout: 5 * 1000,
+      maximumAge: 60 * 1000
+    };
+    this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this), locationOptions);
 
     function locationCallback(position) {
+      logTimeElapsed.call(this, timeLocation, 'Getting location took %TIME%.');
       var requestData = {
         lon: position.coords.longitude,
         lat: position.coords.latitude,
         page: 1,
         rpp: 10,
         /*jshint -W106*/
-        api_key: Config.transportApi.apiKey,
-        app_id: Config.transportApi.appId
+        api_key: this.transportApi.apiKey,
+        app_id: this.transportApi.appId
         /*jshint +W106*/
       };
-      http.get('http://transportapi.com/v3/uk/train/stations/near.json', requestData, requestCallback);
+      timeLookup = new Date();
+      this.http.get('http://transportapi.com/v3/uk/train/stations/near.json', requestData, requestCallback.bind(this));
     }
 
-    function locationError(err) {
-      console.log(err);
+    function locationError() {
+      logTimeElapsed.call(this, timeLocation, 'Failing to get location took %TIME%.');
+      this.pebble.sendAppMessage({ group: 'ERROR', operation: 'LOCATION', data: 'Location access disabled.' });
     }
 
     function requestCallback(err, data) {
+      logTimeElapsed.call(this, timeLookup, 'Finding nearest stations took %TIME%.');
       var stations = data.stations;
       var responseData = [];
       responseData.push(stations.length);
@@ -72,21 +87,33 @@ var Train = (function () {
         /*jshint +W106*/
         responseData.push(station.name);
       });
-      Pebble.sendAppMessage({ group: 'TRAIN', operation: 'STATIONS', data: responseData.join('|') });
+      this.pebble.sendAppMessage({ group: 'TRAIN', operation: 'STATIONS', data: responseData.join('|') });
     }
   }
 
   function opTrainDepartures(data) {
-    PblAnalytics.trackEvent('train-departures', { station: data });
+    if (this.analytics) {
+      this.analytics.trackEvent('train-departures', { station: data });
+    }
     var code = data;
     var requestData = {
       /*jshint -W106*/
-      api_key: Config.transportApi.apiKey,
-      app_id: Config.transportApi.appId,
+      api_key: this.transportApi.apiKey,
+      app_id: this.transportApi.appId,
       /*jshint +W106*/
       limit: 10
     };
-    http.get('http://transportapi.com/v3/uk/train/station/' + code + '/live.json', requestData, function (err, data) {
+    this.http.get('http://transportapi.com/v3/uk/train/station/' + code + '/live.json', requestData, function (err, data) {
+      if (err) {
+        switch (err.message) {
+        case 'NOT_CONNECTED':
+          this.pebble.sendAppMessage({ group: 'ERROR', operation: 'HTTP', data: 'Not online.' });
+          return;
+        default:
+          this.pebble.sendAppMessage({ group: 'ERROR', operation: 'HTTP', data: 'Unknown error.' });
+          return;
+        }
+      }
       var departures = data.departures.all;
       var responseData = [];
       responseData.push(departures.length);
@@ -96,8 +123,20 @@ var Train = (function () {
         responseData.push(departure.expected_departure_time);
         /*jshint +W106*/
       });
-      Pebble.sendAppMessage({ group: 'TRAIN', operation: 'DEPARTURES', data: responseData.join('|') });
-    });
+      this.pebble.sendAppMessage({ group: 'TRAIN', operation: 'DEPARTURES', data: responseData.join('|') });
+    }.bind(this));
   }
 
-}());
+  function logTimeElapsed(start, message) {
+    var now = new Date();
+    var totalMs = now.getTime() - start.getTime();
+    if (this.debug) {
+      console.log(message.replace('%TIME%', totalMs + 'ms'));
+    }
+  }
+
+};
+
+Train.prototype.init = function() {
+  this.pebble.addEventListener('ready', this.onPebbleReady.bind(this));
+};

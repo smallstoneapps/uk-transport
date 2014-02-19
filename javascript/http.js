@@ -1,7 +1,6 @@
 /* exported http */
 
 var http = (function () {
-  "use strict";
 
   return {
     get: get
@@ -21,6 +20,14 @@ var http = (function () {
       }
       else {
         return callback(new Error(req.status));
+      }
+    };
+    req.onerror = function () {
+      switch (req.status) {
+      case 0:
+        return callback(new Error('NOT_CONNECTED'));
+      case 404:
+        return callback(new Error('NOT_FOUND'));
       }
     };
     req.send();

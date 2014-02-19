@@ -12,3 +12,6 @@ pebble/src/js/*.js
 
 screenshots/
 store/
+node_modules/
+
+*.sublime-*

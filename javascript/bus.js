@@ -1,48 +1,50 @@
-/* global http */
-/* global Config */
-/* global PblAnalytics */
 /* exported Bus */
 
-var Bus = (function () {
-  "use strict";
+var Bus = function (options) {
+  this.pebble = options.pebble;
+  this.http = options.http;
+  this.debug = options.debug;
+  this.location = options.location;
+  this.analytics = options.analytics || null;
+  this.transportApi = options.transportApi;
 
-  Pebble.addEventListener('ready', pebbleReady);
-
-  function pebbleReady(e) {
-    if (! e.ready) {
+  this.onPebbleReady = function (event) {
+    if (! event.ready) {
       return;
     }
-    if (Config.debug) {
-      console.log('UK Transport // Bus // Ready');
+    if (this.debug) {
+      console.log('UK Transport // ' + this.version + ' // Bus // Ready');
     }
-    Pebble.addEventListener('appmessage', pebbleAppMessage);
-  }
+    this.pebble.addEventListener('appmessage', pebbleAppMessage.bind(this));
+  };
 
-  function pebbleAppMessage(e) {
-    var payload = e.payload;
+  function pebbleAppMessage(event) {
+    var payload = event.payload;
     var group = payload.group.toLowerCase();
     if (group !== 'bus') {
       return;
     }
-    if (Config.debug) {
+    if (this.debug) {
       console.log('UK Transport // Bus // Payload // ' + JSON.stringify(payload));
     }
     var operation = payload.operation.toLowerCase();
     switch (operation) {
-      case 'stops':
-        opBusStops(e.payload.data);
-        break;
-      case 'departures':
-        opBusDepartures(e.payload.data);
-        break;
+    case 'stops':
+      opBusStops.call(this, payload.data);
+      break;
+    case 'departures':
+      opBusDepartures.call(this, payload.data);
+      break;
     }
   }
 
   function opBusStops() {
 
-    PblAnalytics.trackEvent('bus-stops');
+    if (this.analytics) {
+      this.analytics.trackEvent('bus-stops');
+    }
 
-    navigator.geolocation.getCurrentPosition(locationCallback, locationError);
+    this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this));
 
     function locationCallback(position) {
       var requestData = {
@@ -51,11 +53,11 @@ var Bus = (function () {
         page: 1,
         rpp: 10,
         /*jshint -W106*/
-        api_key: Config.transportApi.apiKey,
-        app_id: Config.transportApi.appId
+        api_key: this.transportApi.apiKey,
+        app_id: this.transportApi.appId
         /*jshint +W106*/
       };
-      http.get('http://transportapi.com/v3/uk/bus/stops/near.json', requestData, requestCallback);
+      this.http.get('http://transportapi.com/v3/uk/bus/stops/near.json', requestData, requestCallback.bind(this));
     }
 
     function locationError(err) {
@@ -77,22 +79,24 @@ var Bus = (function () {
         responseData.push(stop.name);
         responseData.push(stop.indicator);
       });
-      Pebble.sendAppMessage({ group: 'BUS', operation: 'STOPS', data: responseData.join('|') });
+      this.pebble.sendAppMessage({ group: 'BUS', operation: 'STOPS', data: responseData.join('|') });
     }
   }
 
   function opBusDepartures(data) {
-    PblAnalytics.trackEvent('bus-depatures', { stop: data });
+    if (this.analytics) {
+      this.analytics.trackEvent('bus-depatures', { stop: data });
+    }
 
     var code = data;
     var requestData = {
       /*jshint -W106*/
-      api_key: Config.transportApi.apiKey,
-      app_id: Config.transportApi.appId,
+      api_key: this.transportApi.apiKey,
+      app_id: this.transportApi.appId,
       /*jshint +W106*/
       group: 'no'
     };
-    http.get('http://transportapi.com/v3/uk/bus/stop/' + code + '/live.json', requestData, requestCallback);
+    this.http.get('http://transportapi.com/v3/uk/bus/stop/' + code + '/live.json', requestData, requestCallback.bind(this));
 
     function requestCallback(err, data) {
       var departures = data.departures.all;
@@ -105,9 +109,12 @@ var Bus = (function () {
         responseData.push(departure.best_departure_estimate);
         /*jshint +W106*/
       });
-      Pebble.sendAppMessage({ group: 'BUS', operation: 'DEPARTURES', data: responseData.join('|') });
+      this.pebble.sendAppMessage({ group: 'BUS', operation: 'DEPARTURES', data: responseData.join('|') });
     }
   }
 
+};
 
-}());
+Bus.prototype.init = function() {
+  this.pebble.addEventListener('ready', this.onPebbleReady.bind(this));
+};
