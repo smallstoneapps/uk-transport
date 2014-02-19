@@ -5,7 +5,7 @@ var Bus = function (options) {
   this.http = options.http;
   this.debug = options.debug;
   this.location = options.location;
-  this.analytics = options.analytics || null;
+  this.analytics = options.ga;
   this.transportApi = options.transportApi;
 
   this.onPebbleReady = function (event) {
@@ -41,7 +41,7 @@ var Bus = function (options) {
   function opBusStops() {
 
     if (this.analytics) {
-      this.analytics.trackEvent('bus-stops');
+      this.analytics.trackEvent('bus', 'stops');
     }
 
     this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this));
@@ -85,7 +85,7 @@ var Bus = function (options) {
 
   function opBusDepartures(data) {
     if (this.analytics) {
-      this.analytics.trackEvent('bus-depatures', { stop: data });
+      this.analytics.trackEvent('bus', 'depatures-' + data);
     }
 
     var code = data;

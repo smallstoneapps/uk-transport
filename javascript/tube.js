@@ -8,7 +8,7 @@ var Tube = function (options) {
   this.pebble = options.pebble;
   this.http = options.http;
   this.debug = options.debug;
-  this.analytics = options.analytics;
+  this.analytics = options.ga;
   this.version = options.version;
 
   this.pebble.addEventListener('ready', onPebbleReady.bind(this));
@@ -47,7 +47,7 @@ var Tube = function (options) {
   function opLineStatus(data) {
 
     if (this.analytics) {
-      this.analytics.trackEvent('tube-update');
+      this.analytics.trackEvent('tube', 'update');
     }
 
     // Query the wonderful tubeupdates.com API for the current status of

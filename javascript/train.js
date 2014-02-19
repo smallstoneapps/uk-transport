@@ -5,7 +5,7 @@ var Train = function (options) {
   this.http = options.http;
   this.debug = options.debug;
   this.location = options.location;
-  this.analytics = options.analytics || null;
+  this.analytics = options.ga;
   this.transportApi = options.transportApi;
   this.version = options.version;
 
@@ -42,7 +42,7 @@ var Train = function (options) {
   function opTrainStations() {
 
     if (this.analytics) {
-      this.analytics.trackEvent('train-stations');
+      this.analytics.trackEvent('train', 'stations');
     }
 
     var timeLocation = new Date();
@@ -93,7 +93,7 @@ var Train = function (options) {
 
   function opTrainDepartures(data) {
     if (this.analytics) {
-      this.analytics.trackEvent('train-departures', { station: data });
+      this.analytics.trackEvent('train', 'departures-' + data);
     }
     var code = data;
     var requestData = {

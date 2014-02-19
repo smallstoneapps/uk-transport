@@ -1,7 +1,7 @@
 /* global Pebble */
 /* global Config */
 /* global http */
-/* global PblAnalytics */
+/* global Analytics */
 /* global Tube */
 /* global Train */
 /* global Bus */
@@ -10,12 +10,12 @@
 
   var VERSION = '0.2.5';
 
-  PblAnalytics.init({ uuid: '00e9deeb-16b4-4752-ae35-2cc088fc6ca9', version: VERSION });
+  var ga = new Analytics('UA-48246810-1', 'UK Transport', VERSION);
 
   new Tube({
     pebble: Pebble,
     http: http,
-    analytics: PblAnalytics,
+    ga: ga,
     debug: true,
     version: VERSION
   });
@@ -23,7 +23,7 @@
   var train = new Train({
     pebble: Pebble,
     http: http,
-    analytics: PblAnalytics,
+    ga: ga,
     location: navigator.geolocation,
     debug: true,
     transportApi: Config.transportApi,
@@ -34,7 +34,7 @@
   var bus = new Bus({
     pebble: Pebble,
     http: http,
-    analytics: PblAnalytics,
+    ga: ga,
     location: navigator.geolocation,
     debug: true,
     transportApi: Config.transportApi,

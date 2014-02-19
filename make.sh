@@ -2,8 +2,9 @@ jshint javascript/*.js --config ~/Projects/Pebble/pebble-jshintrc --verbose || {
 jshint pebble/appinfo.json || { exit 1; }
 karma start --single-run --reporters=dots
 cat \
-  javascript/pbl-analytics.js \
-  javascript/http.js \
+  javascript/lib/pbl-analytics.js \
+  javascript/lib/pebble-ga.js \
+  javascript/lib/http.js \
   javascript/config.js \
   javascript/bus.js \
   javascript/train.js \
