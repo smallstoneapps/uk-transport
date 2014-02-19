@@ -1,6 +1,6 @@
 {
   "name": "uk-transport",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "UK Transport app for the Pebble smartwatch.",
   "main": "karma.conf.js",
   "directories": {

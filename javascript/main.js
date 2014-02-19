@@ -8,7 +8,7 @@
 
 (function () {
 
-  var VERSION = '0.2.5';
+  var VERSION = '0.2.6';
 
   var ga = new Analytics('UA-48246810-1', 'UK Transport', VERSION);
 
