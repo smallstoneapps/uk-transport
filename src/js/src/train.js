@@ -9,16 +9,6 @@ var Train = function (options) {
   this.transportApi = options.transportApi;
   this.version = options.version;
 
-  this.onPebbleReady = function (event) {
-    if (! event.ready) {
-      return;
-    }
-    if (this.debug) {
-      console.log('UK Transport // ' + this.version + ' // Train // Ready');
-    }
-    this.pebble.addEventListener('appmessage', this.onPebbleAppMessage.bind(this));
-  };
-
   this.onPebbleAppMessage = function (event) {
     var payload = event.payload;
     var group = payload.group.toLowerCase();
@@ -30,12 +20,12 @@ var Train = function (options) {
     }
     var operation = payload.operation.toLowerCase();
     switch (operation) {
-    case 'stations':
-      opTrainStations.call(this, payload.data);
-      break;
-    case 'departures':
-      opTrainDepartures.call(this, payload.data);
-      break;
+      case 'stations':
+        opTrainStations.call(this, payload.data);
+        break;
+      case 'departures':
+        opTrainDepartures.call(this, payload.data);
+        break;
     }
   };
 
@@ -138,5 +128,5 @@ var Train = function (options) {
 };
 
 Train.prototype.init = function() {
-  this.pebble.addEventListener('ready', this.onPebbleReady.bind(this));
+  this.pebble.addEventListener('appmessage', this.onPebbleAppMessage.bind(this));
 };

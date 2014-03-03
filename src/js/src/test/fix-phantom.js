@@ -5,6 +5,7 @@
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Compatibility
 
 if (!Function.prototype.bind) {
+  /*jshint -W121*/
   Function.prototype.bind = function (oThis) {
     if (typeof this !== "function") {
       // closest thing possible to the ECMAScript 5 internal IsCallable function
@@ -15,10 +16,8 @@ if (!Function.prototype.bind) {
         fToBind = this,
         fNOP = function () {},
         fBound = function () {
-          return fToBind.apply(this instanceof fNOP && oThis
-                                 ? this
-                                 : oThis,
-                               aArgs.concat(Array.prototype.slice.call(arguments)));
+          return fToBind.apply(this instanceof fNOP && oThis ? this : oThis,
+            aArgs.concat(Array.prototype.slice.call(arguments)));
         };
 
     fNOP.prototype = this.prototype;
@@ -26,4 +25,5 @@ if (!Function.prototype.bind) {
 
     return fBound;
   };
+  /*jshint +W121*/
 }

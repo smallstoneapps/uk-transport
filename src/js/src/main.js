@@ -1,5 +1,6 @@
 /* global Pebble */
 /* global Config */
+/* global AppInfo */
 /* global http */
 /* global Analytics */
 /* global Tube */
@@ -8,16 +9,26 @@
 
 (function () {
 
-  var VERSION = '0.2.6';
+  var ga;
 
-  var ga = new Analytics('UA-48246810-1', 'UK Transport', VERSION);
+  Pebble.addEventListener('ready', function () {
+    ga = new Analytics('UA-48246810-1', 'UK Transport', AppInfo.versionLabel);
+    train.init();
+    tube.init();
+    bus.init();
+  });
 
-  new Tube({
+  /*Pebble.addEventListener('appmessage', function (event) {
+    var payload = event.payload;
+    var group = payload.group.toLowerCase();
+  });*/
+
+  var tube = new Tube({
     pebble: Pebble,
     http: http,
     ga: ga,
     debug: true,
-    version: VERSION
+    version: AppInfo.versionLabel
   });
 
   var train = new Train({
@@ -27,9 +38,8 @@
     location: navigator.geolocation,
     debug: true,
     transportApi: Config.transportApi,
-    version: VERSION
+    version: AppInfo.versionLabel
   });
-  train.init();
 
   var bus = new Bus({
     pebble: Pebble,
@@ -38,8 +48,7 @@
     location: navigator.geolocation,
     debug: true,
     transportApi: Config.transportApi,
-    version: VERSION
+    version: AppInfo.versionLabel
   });
-  bus.init();
 
 }());

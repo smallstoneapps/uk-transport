@@ -1,3 +1,13 @@
+/* global describe */
+/* global expect */
+/* global beforeEach */
+/* global it */
+/* global Config */
+/* global MockHttp */
+/* global MockPebble */
+/* global MockLocation */
+/* global Train */
+
 describe('Train', function () {
 
   var http = null;
@@ -16,28 +26,23 @@ describe('Train', function () {
       debug: false,
       transportApi: Config.transportApi
     });
-  });
-
-  it('should listen for the ready event', function (done) {
     train.init();
-    expect(pebble._getEventListeners('ready').length).to.equal(1);
-    done();
   });
 
   it('should listen for app messages when ready', function (done) {
-    train.init();
-    pebble._emit('ready', { ready: true });
     expect(pebble._getEventListeners('appmessage').length).to.equal(1);
     done();
   });
 
   it('should respond to request for nearest stations', function (done) {
-    train.init();
     http.addHandler(/.*/, function (url, data, callback) {
+      /*jshint -W106*/
       expect(data.app_id).to.equal(Config.transportApi.appId);
       expect(data.api_key).to.equal(Config.transportApi.apiKey);
+      /*jshint +W106*/
       return callback(null, {
         stations: [
+          /*jshint -W106*/
           {
             station_code: "CST",
             name: "London Cannon Street"
@@ -46,6 +51,7 @@ describe('Train', function () {
             station_code: "CTK",
             name: "City Thameslink",
           }
+          /*jshint +W106*/
         ]
       });
     });
@@ -55,31 +61,30 @@ describe('Train', function () {
       expect(payload.data).to.equal('2|CST|London Cannon Street|CTK|City Thameslink');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TRAIN', operation: 'STATIONS', data: '' } });
   });
 
   it('should handle a location error', function (done) {
     location._disable();
-    train.init();
     pebble._on('appmessage', function (payload) {
       expect(payload.group).to.equal('ERROR');
       expect(payload.operation).to.equal('LOCATION');
       expect(payload.data).to.equal('Location access disabled.');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TRAIN', operation: 'STATIONS', data: '' } });
   });
 
   it('should respond to a request for upcoming departures', function (done) {
-    train.init();
     http.addHandler(/.*/, function (url, data, callback) {
+      /*jshint -W106*/
       expect(data.app_id).to.equal(Config.transportApi.appId);
       expect(data.api_key).to.equal(Config.transportApi.apiKey);
+      /*jshint +W106*/
       return callback(null, {
         departures: {
           all: [
+            /*jshint -W106*/
             {
               destination_name: "Luton",
               expected_departure_time: "21:02"
@@ -88,6 +93,7 @@ describe('Train', function () {
               destination_name: "Sutton (Surrey)",
               expected_departure_time: "21:10"
             }
+            /*jshint +W106*/
           ]
         }
       });
@@ -98,12 +104,10 @@ describe('Train', function () {
       expect(payload.data).to.equal('2|Luton|21:02|Sutton (Surrey)|21:10');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TRAIN', operation: 'DEPARTURES', data: 'CST' } });
   });
 
   it('should send an error message if not connected to the internet', function (done) {
-    train.init();
     http.addHandler(/.*/, function (url, data, callback) {
       return callback(new Error('NOT_CONNECTED'), null);
     });
@@ -113,7 +117,6 @@ describe('Train', function () {
       expect(payload.data).to.equal('Not online.');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TRAIN', operation: 'DEPARTURES', data: 'CST' } });
   });
 

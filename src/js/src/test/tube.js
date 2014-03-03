@@ -1,3 +1,11 @@
+/* global describe */
+/* global expect */
+/* global beforeEach */
+/* global it */
+/* global MockHttp */
+/* global MockPebble */
+/* global Tube */
+
 describe('Tube', function () {
 
   var http = null;
@@ -8,17 +16,11 @@ describe('Tube', function () {
     http = new MockHttp();
     pebble = new MockPebble();
     tube = new Tube({ pebble: pebble, http: http, debug: false });
-  });
-
-
-  it('should listen for the ready event', function (done) {
-    expect(pebble._getEventListeners('ready').length).to.equal(1);
-    done();
+    tube.init();
   });
 
 
   it('should listen for app messages when ready', function (done) {
-    pebble._emit('ready', { ready: true });
     expect(pebble._getEventListeners('appmessage').length).to.equal(1);
     done();
   });
@@ -54,7 +56,6 @@ describe('Tube', function () {
       expect(payload.data).to.equal('OFFLINE');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
   });
 
@@ -75,7 +76,6 @@ describe('Tube', function () {
       expect(payload.data).to.equal('1|Bakerloo|Good Service');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
   });
 
@@ -98,7 +98,6 @@ describe('Tube', function () {
       expect(payload.data).to.equal('3|Central|Part Closure|Northern|Severe Delays|Bakerloo|Good Service');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
   });
 
@@ -120,7 +119,6 @@ describe('Tube', function () {
       expect(payload.data).to.equal('3|Bakerloo|Good Service|Central|Good Service|Northern|Good Service');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
   });
 
@@ -140,7 +138,6 @@ describe('Tube', function () {
       expect(payload.data).to.equal('1|Central|Part Closure, Minor Delays, Good Service');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
   });
 
@@ -163,7 +160,6 @@ describe('Tube', function () {
       expect(payload.data).to.equal('2|Bakerloo|Good Service|Northern|Good Service');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
   });
 
@@ -192,8 +188,7 @@ describe('Tube', function () {
       expect(typeof(payload.data)).to.equal('string');
       done();
     });
-    pebble._emit('ready', { ready: true });
     pebble._emit('appmessage', { payload: { group: 'TUBE', operation: 'UPDATE', data: '' } });
-  })
+  });
 
 });

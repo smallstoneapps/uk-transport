@@ -11,37 +11,27 @@ var Tube = function (options) {
   this.analytics = options.ga;
   this.version = options.version;
 
-  this.pebble.addEventListener('ready', onPebbleReady.bind(this));
+};
 
-  function onPebbleReady(event) {
-    if (! event.ready) {
-      return;
-    }
-    if (this.debug) {
-      console.log('UK Transport // ' + this.version + ' // Tube // Ready');
-    }
-    this.pebble.addEventListener('appmessage', onPebbleAppMessage.bind(this));
-  }
+Tube.prototype._onPebbleAppMessage = function(event) {
 
   // Event handler for any messages coming from the watch.
-  function onPebbleAppMessage(event) {
-    var payload = event.payload;
-    var group = payload.group.toLowerCase();
-    // Only handle events that are for the Tube.
-    if (group !== 'tube') {
-      return;
-    }
-    if (this.debug) {
-      console.log('UK Transport // Tube // Payload // ' + JSON.stringify(payload));
-    }
-    // Work out what operating is coming in, and handle it appropriately.
-    var operation = payload.operation.toLowerCase();
-    switch (operation) {
-    // Right now we just have the one operation, so that's pretty simple.
-    case 'update':
-      opLineStatus.call(this, payload.data);
-      break;
-    }
+  var payload = event.payload;
+  var group = payload.group.toLowerCase();
+  // Only handle events that are for the Tube.
+  if (group !== 'tube') {
+    return;
+  }
+  if (this.debug) {
+    console.log('UK Transport // Tube // Payload // ' + JSON.stringify(payload));
+  }
+  // Work out what operating is coming in, and handle it appropriately.
+  var operation = payload.operation.toLowerCase();
+  switch (operation) {
+  // Right now we just have the one operation, so that's pretty simple.
+  case 'update':
+    opLineStatus.call(this, payload.data);
+    break;
   }
 
   function opLineStatus(data) {
@@ -181,6 +171,13 @@ var Tube = function (options) {
     return undefined;
   }
 
+};
+
+Tube.prototype.init = function() {
+  if (this.debug) {
+    console.log('UK Transport // ' + this.version + ' // Tube // Ready');
+  }
+  this.pebble.addEventListener('appmessage', this._onPebbleAppMessage.bind(this));
 };
 
 // The order in which we display lines, and the status of those lines is

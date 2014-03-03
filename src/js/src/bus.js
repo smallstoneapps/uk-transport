@@ -7,18 +7,9 @@ var Bus = function (options) {
   this.location = options.location;
   this.analytics = options.ga;
   this.transportApi = options.transportApi;
+  this.version = options.version;
 
-  this.onPebbleReady = function (event) {
-    if (! event.ready) {
-      return;
-    }
-    if (this.debug) {
-      console.log('UK Transport // ' + this.version + ' // Bus // Ready');
-    }
-    this.pebble.addEventListener('appmessage', pebbleAppMessage.bind(this));
-  };
-
-  function pebbleAppMessage(event) {
+  this.pebbleAppMessage = function(event) {
     var payload = event.payload;
     var group = payload.group.toLowerCase();
     if (group !== 'bus') {
@@ -36,7 +27,7 @@ var Bus = function (options) {
       opBusDepartures.call(this, payload.data);
       break;
     }
-  }
+  };
 
   function opBusStops() {
 
@@ -116,5 +107,5 @@ var Bus = function (options) {
 };
 
 Bus.prototype.init = function() {
-  this.pebble.addEventListener('ready', this.onPebbleReady.bind(this));
+  this.pebble.addEventListener('appmessage', this.pebbleAppMessage.bind(this));
 };

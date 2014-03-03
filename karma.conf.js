@@ -1,16 +1,16 @@
 module.exports = function(config) {
   config.set({
-    basePath: '',
+    basePath: 'src/js/src',
     frameworks: ['mocha', 'chai', 'sinon'],
     files: [
-      'javascript/test/mocks/*.js',
-      'javascript/test/*.js',
-      'javascript/*.js'
+      'test/mocks/*.js',
+      'test/*.js',
+      './*.js'
     ],
     exclude: [
-      'javascript/main.js',
-      'javascript/http.js',
-      'javascript/pbl-analytics.js'
+      'main.js',
+      'http.js',
+      'pbl-analytics.js'
     ],
     reporters: ['dots', 'osx'],
     port: 9876,
