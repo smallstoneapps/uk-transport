@@ -32,7 +32,7 @@ You can also [download the PBW file from GitHub][github_pbw].
 
 [appstore]: https://apps.getpebble.com/applications/52d3086712ea3dec7e00001b
 [badge]: http://pblweb.com/badge/52d3086712ea3dec7e00001b/black/medium/
-[banner]: https://raw.githubusercontent.com/smallstoneapps/multi-timer/master/marketing/banners/banner_03.png
+[banner]: https://raw.githubusercontent.com/smallstoneapps/multi-timer/master/marketing/banners/banner_03_tube.png
 [breakfast]: https://smallstoneapps.s3.amazonaws.com/uk-transport/marketing/bbc-breakfast-2014-02-15.png
 [mpf]: TODO
 [github_pbw]: TODO
