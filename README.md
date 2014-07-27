@@ -1,6 +1,6 @@
 ![UK Transport Marketing Banner][banner]
 
-**The must have Pebble app for people who using UK public transport.**
+**The must have Pebble app for people who use UK public transport.**
 
 Look up upcoming bus and train departures from your closest stops and stations,
 and mark your favourites for easy access in the future.
