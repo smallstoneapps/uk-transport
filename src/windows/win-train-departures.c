@@ -1,9 +1,38 @@
-/***
- * UK Transport
- * Copyright (C) 2013 Matthew Tole
- *
- * windows/win-train-departures.c
- ***/
+/*
+
+UK Transport v0.3.0
+
+http://matthewtole.com/pebble/uk-transport/
+
+----------------------
+
+The MIT License (MIT)
+
+Copyright © 2013 - 2014 Matthew Tole
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------
+
+src/windows/win-train-departures.c
+
+*/
 
 #include <pebble.h>
 #include "win-train-departures.h"
@@ -20,9 +49,8 @@ static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_i
 static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_index, void* data);
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data);
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data);
-
+static void menu_draw_departure_row(GContext* ctx, MenuIndex* cell_index, TrainDeparture* departure);
 static void layer_header_update(Layer* layer, GContext* ctx);
-
 static void departures_update(void);
 
 static Window* window;
@@ -97,7 +125,19 @@ static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_i
 }
 
 static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_index, void* data) {
-  return 30;
+  if (cell_index->row == 0 && train_get_departure_count() == 0) {
+    return 28;
+  }
+  else {
+    TrainDeparture* departure = train_get_departure(cell_index->row);
+    if (NULL == departure) {
+      return 0;
+    }
+    if (strlen(departure->platform) > 0) {
+      return 64;
+    }
+    return 46;
+  }
 }
 
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data) {
@@ -111,9 +151,42 @@ static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuI
   }
   else {
     TrainDeparture* departure = train_get_departure(cell_index->row);
-    graphics_draw_text(ctx, departure->destination, fonts_get_system_font(FONT_KEY_GOTHIC_24), GRect(4, -3, 96, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-    graphics_draw_text(ctx, departure->est_time, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(4, 2, 136, 22), GTextOverflowModeFill, GTextAlignmentRight, NULL);
+    if (NULL == departure) {
+      return;
+    }
+    menu_draw_departure_row(ctx, cell_index, departure);
   }
+}
+
+static void menu_draw_departure_row(GContext* ctx, MenuIndex* cell_index, TrainDeparture* departure) {
+
+  graphics_draw_text(ctx, departure->destination,
+    fonts_get_system_font(FONT_KEY_GOTHIC_24), GRect(4, -3, 136, 24),
+    GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+
+  graphics_draw_text(ctx, departure->est_time,
+    fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(4, 22, 64, 18),
+    GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+
+  GFont* status_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  if (train_departure_is_ok(departure)) {
+    status_font = fonts_get_system_font(FONT_KEY_GOTHIC_18);
+  }
+
+  graphics_draw_text(ctx, departure->status,
+    status_font, GRect(72, 22, 64, 18),
+    GTextOverflowModeFill, GTextAlignmentRight, NULL);
+
+  if (strlen(departure->platform) > 0) {
+    uint8_t platform_str_len = strlen(departure->platform) + 10;
+    char* platform_str = malloc(platform_str_len);
+    snprintf(platform_str, platform_str_len, "PLATFORM %s", departure->platform);
+    graphics_draw_text(ctx, platform_str,
+      fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD), GRect(4, 44, 136, 14),
+      GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+    free_safe(platform_str);
+  }
+
 }
 
 static void layer_header_update(Layer* layer, GContext* ctx) {

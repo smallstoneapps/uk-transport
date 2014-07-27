@@ -1,12 +1,42 @@
-/***
- * UK Transport
- * Copyright (C) 2013 Matthew Tole
- *
- * windows/tube.c
- ***/
+/*
+
+UK Transport v0.3.0
+
+http://matthewtole.com/pebble/uk-transport/
+
+----------------------
+
+The MIT License (MIT)
+
+Copyright © 2013 - 2014 Matthew Tole
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------
+
+src/windows/win-tube.c
+
+*/
 
 #include <pebble.h>
 #include "win-tube.h"
+#include "win-tube-details.h"
 #include "../libs/pebble-assist/pebble-assist.h"
 #include "../libs/bitmap-loader/bitmap-loader.h"
 #include "../layers/layer-loading.h"
@@ -37,10 +67,12 @@ void win_tube_create(void) {
     .disappear = window_disappear
   });
   tube_register_update_handler(tube_updated);
+  win_tube_details_create();
 }
 
 void win_tube_destroy(void) {
   window_destroy(window);
+  win_tube_details_destroy();
 }
 
 void win_tube_show(bool animated) {
@@ -115,6 +147,12 @@ static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuI
 }
 
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
+  if (cell_index->section == 0) {
+    TubeLine* line = tube_get_line(cell_index->row);
+    if (true || strcmp(line->status, "Good Service") != 0) {
+      win_tube_details_show(line, false);
+    }
+  }
   if (cell_index->section == 1 && cell_index->row == 0) {
     tube_update_lines();
     layer_show(layer_loading);

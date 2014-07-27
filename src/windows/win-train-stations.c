@@ -1,17 +1,50 @@
-/***
- * UK Transport
- * Copyright (C) 2013 Matthew Tole
- *
- * windows/win-train-stations.c
- ***/
+/*
+
+UK Transport v0.3.0
+
+http://matthewtole.com/pebble/uk-transport/
+
+----------------------
+
+The MIT License (MIT)
+
+Copyright © 2013 - 2014 Matthew Tole
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------
+
+src/windows/win-train-stations.c
+
+*/
 
 #include <pebble.h>
 #include "win-train-departures.h"
 #include "win-train-stations.h"
 #include "../libs/pebble-assist/pebble-assist.h"
 #include "../libs/bitmap-loader/bitmap-loader.h"
+#include "../libs/message-queue/message-queue.h"
 #include "../layers/layer-loading.h"
 #include "../train.h"
+
+#define SECTION_FAVOURITE 0
+#define SECTION_NEARBY 1
 
 static void window_load(Window* window);
 static void window_unload(Window* window);
@@ -23,10 +56,14 @@ static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_inde
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data);
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data);
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context);
+static void menu_select_long_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context);
 
 static void stations_updated(void);
 static void draw_station(GContext* ctx, TrainStation* station);
+static void draw_station_favourite(GContext* ctx, TrainStation* station);
 static void goto_station(TrainStation* station);
+static uint16_t actual_section(uint16_t section_index);
+static void message_handler(char* operation, char* data);
 
 static Window* window;
 static MenuLayer* layer_menu;
@@ -41,6 +78,7 @@ void win_train_create(void) {
   });
   win_train_departures_create();
   train_register_stations_update_handler(stations_updated);
+  mqueue_register_handler("TRAIN", message_handler);
 }
 
 void win_train_destroy(void) {
@@ -50,7 +88,12 @@ void win_train_destroy(void) {
 void win_train_show(bool animated) {
   window_stack_push(window, animated);
   train_get_stations();
-  layer_show(layer_loading);
+  if (train_get_favourite_count() == 0) {
+    layer_show(layer_loading);
+  }
+  else {
+    layer_hide(layer_loading);
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
@@ -64,7 +107,8 @@ static void window_load(Window* window) {
     .get_cell_height = menu_get_cell_height_callback,
     .draw_header = menu_draw_header_callback,
     .draw_row = menu_draw_row_callback,
-    .select_click = menu_select_click_callback
+    .select_click = menu_select_click_callback,
+    .select_long_click = menu_select_long_click_callback
   });
   menu_layer_set_click_config_onto_window(layer_menu, window);
   menu_layer_add_to_window(layer_menu, window);
@@ -83,56 +127,84 @@ static void window_appear(Window* window) {
 }
 
 static uint16_t menu_get_num_sections_callback(MenuLayer* me, void* data) {
-  return (train_get_recent_count() > 0) ? 2 : 1;
+  uint8_t sections = 1;
+  sections += train_get_favourite_count() > 0 ? 1 : 0;
+  return sections;
 }
 
 static uint16_t menu_get_num_rows_callback(MenuLayer* me, uint16_t section_index, void* data) {
-  if (train_get_recent_count() > 0 && section_index == 0) {
-    return train_get_recent_count();
+  switch (actual_section(section_index)) {
+    case SECTION_FAVOURITE:
+      return train_get_favourite_count();
+    case SECTION_NEARBY:
+      return train_get_station_count() == 0 ? 1 : train_get_station_count();
   }
-  return train_get_station_count();
+  return 0;
 }
 
 static int16_t menu_get_header_height_callback(MenuLayer* me, uint16_t section_index, void* data) {
-  if (train_get_recent_count() > 0) {
-    return MENU_CELL_BASIC_HEADER_HEIGHT;
+  if (train_get_favourite_count() == 0) {
+    return 0;
+  }
+  switch (actual_section(section_index)) {
+    case SECTION_FAVOURITE:
+      return 0;
+    case SECTION_NEARBY:
+      return 4;
   }
   return 0;
 }
 
 static int16_t menu_get_cell_height_callback(MenuLayer* me, MenuIndex* cell_index, void* data) {
-  return 30;
+  return 34;
 }
 
 static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, uint16_t section_index, void* data) {
-  if (train_get_recent_count() == 0) {
-    return;
-  }
-  switch (section_index) {
-    case 0:
-      menu_cell_basic_header_draw(ctx, cell_layer, "Recent Stations");
-    break;
-    case 1:
-      menu_cell_basic_header_draw(ctx, cell_layer, "Nearby Stations");
-    break;
-  }
+  // Blank space between sections.
 }
 
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data) {
-  if (train_get_recent_count() > 0 && cell_index->section == 0) {
-    draw_station(ctx, train_get_recent(cell_index->row));
-  }
-  else {
-    draw_station(ctx, train_get_station(cell_index->row));
+  switch (actual_section(cell_index->section)) {
+    case SECTION_FAVOURITE:
+      draw_station_favourite(ctx, train_get_favourite(cell_index->row));
+      break;
+    case SECTION_NEARBY:
+      if (train_get_station_count() == 0) {
+        graphics_context_set_text_color(ctx, GColorBlack);
+        graphics_draw_text(ctx, "Finding Nearest Train Stations", fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, 0, 136, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+      }
+      else {
+        draw_station(ctx, train_get_station(cell_index->row));
+      }
+      break;
   }
 }
 
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
-  if (train_get_recent_count() > 0 && cell_index->section == 0) {
-    goto_station(train_get_recent(cell_index->row));
+  switch (actual_section(cell_index->section)) {
+    case SECTION_FAVOURITE:
+      goto_station(train_get_favourite(cell_index->row));
+      break;
+    case SECTION_NEARBY:
+      goto_station(train_get_station(cell_index->row));
+      break;
   }
-  else {
-    goto_station(train_get_station(cell_index->row));
+}
+
+static void menu_select_long_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
+  switch (actual_section(cell_index->section)) {
+    case SECTION_FAVOURITE:
+      train_remove_favourite(train_get_favourite(cell_index->row));
+      menu_layer_reload_data(layer_menu);
+      break;
+    case SECTION_NEARBY:
+      train_add_favourite(train_get_station(cell_index->row));
+      menu_layer_reload_data(layer_menu);
+      menu_layer_set_selected_index(layer_menu, (MenuIndex) {
+        .section = 0,
+        .row = (train_get_favourite_count() - 1)
+      }, MenuRowAlignCenter, false);
+      break;
   }
 }
 
@@ -149,14 +221,48 @@ static void draw_station(GContext* ctx, TrainStation* station) {
     return;
   }
   graphics_context_set_text_color(ctx, GColorBlack);
-  graphics_draw_text(ctx, station->name, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, -2, 136, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, station->name,
+    fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+    GRect(4, 0, 136, 28),
+    GTextOverflowModeFill,
+    GTextAlignmentLeft,
+    NULL);
 }
+
+static void draw_station_favourite(GContext* ctx, TrainStation* station) {
+  if (station == NULL) {
+    return;
+  }
+  graphics_context_set_text_color(ctx, GColorBlack);
+  graphics_draw_bitmap_in_rect(ctx, bitmaps_get_bitmap(RESOURCE_ID_ICON_FAVOURITE), GRect(4, 10, 14, 14));
+  graphics_draw_text(ctx, station->name,
+    fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+    GRect(22, 0, 118, 28),
+    GTextOverflowModeFill,
+    GTextAlignmentLeft,
+    NULL);
+}
+
 
 static void goto_station(TrainStation* station) {
   if (station == NULL) {
     return;
   }
   win_train_departures_set_station(station);
-  win_train_departures_show(true);
-  train_mark_recent(station);
+  win_train_departures_show(false);
+}
+
+static uint16_t actual_section(uint16_t section_index) {
+  uint16_t actual_section = section_index;
+  if (train_get_favourite_count() == 0) {
+    actual_section += 1;
+  }
+  return actual_section;
+}
+
+static void message_handler(char* operation, char* data) {
+  if (strcmp(operation, "ERROR") != 0) {
+    return;
+  }
+  LOG(data);
 }

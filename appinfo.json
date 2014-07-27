@@ -3,8 +3,8 @@
   "shortName": "UK Transport",
   "longName": "UK Transport",
   "companyName": "Matthew Tole",
-  "versionCode": 8,
-  "versionLabel": "0.2.7",
+  "versionCode": 10,
+  "versionLabel": "0.3.0",
   "watchapp": {
     "watchface": false
   },
@@ -51,6 +51,17 @@
         "type": "png",
         "name": "MENU_ABOUT",
         "file": "images/menu_about.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_FAVOURITE",
+        "file": "images/icon_favourite.png"
+      },
+      {
+        "type": "font",
+        "name": "FONT_ICON_8",
+        "file": "fonts/icomoon.ttf",
+        "characterRegex": "ab"
       }
     ]
   }

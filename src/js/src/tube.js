@@ -1,16 +1,55 @@
+/*
+
+UK Transport v0.3.0
+
+http://matthewtole.com/pebble/uk-transport/
+
+----------------------
+
+The MIT License (MIT)
+
+Copyright © 2013 - 2014 Matthew Tole
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------
+
+src/js/src/tube.js
+
+*/
+
+/* global Pebble */
+/* global MessageQueue */
+/* global http */
+/* global Config */
 /* exported Tube */
 
-// The tests for this module can be found in [/javascript/test/tube.js](test/tube.html)
+// The tests for this module can be found in [/src/js/tests/tube.js](test/tube.html)
 
 var Tube = function (options) {
+  this.pebble = options.pebble || Pebble;
+  this.messageQueue = options.messageQueue || MessageQueue;
+  this.http = options.http || http;
 
-  // These things are abstracted to make it easier to test.
-  this.pebble = options.pebble;
-  this.http = options.http;
   this.debug = options.debug;
   this.analytics = options.ga;
   this.version = options.version;
-
 };
 
 Tube.prototype._onPebbleAppMessage = function(event) {
@@ -23,15 +62,17 @@ Tube.prototype._onPebbleAppMessage = function(event) {
     return;
   }
   if (this.debug) {
-    console.log('UK Transport // Tube // Payload // ' + JSON.stringify(payload));
+    this.log('Payload', JSON.stringify(payload));
   }
   // Work out what operating is coming in, and handle it appropriately.
   var operation = payload.operation.toLowerCase();
   switch (operation) {
-  // Right now we just have the one operation, so that's pretty simple.
-  case 'update':
-    opLineStatus.call(this, payload.data);
-    break;
+    case 'update':
+      opLineStatus.call(this, payload.data);
+      break;
+    case 'details':
+      opLineDetails.call(this, payload.data);
+      break;
   }
 
   function opLineStatus(data) {
@@ -40,39 +81,26 @@ Tube.prototype._onPebbleAppMessage = function(event) {
       this.analytics.trackEvent('tube', 'update');
     }
 
-    // Query the wonderful tubeupdates.com API for the current status of
-    // the London Underground.
-    // var url = 'http://api.tubeupdates.com/?method=get.status&format=json';
-    // var url = 'http://localhost:3000/pebble/tube/';
-    var url = 'http://matthewtole.com/pebble/tube/';
-    this.http.get(url, data, function (err, data) {
-
+    this.http.get(Config.api.tube.status, data, function (err, data) {
       // If there was an error, send an error code to the Pebble.
       if (err) {
         switch (err.message) {
         case 'NOT_CONNECTED':
-          return this.pebble.sendAppMessage({
-            group: 'ERROR',
-            operation: 'HTTP',
-            data: 'OFFLINE'
-          });
+          this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'OFFLINE' });
+          return;
         default:
-          return this.pebble.sendAppMessage({
-            group: 'ERROR',
-            operation: 'HTTP',
-            data: 'UNKNOWN'
-          });
+          this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'HTTP_UNKNOWN' });
+          return;
         }
       }
-
       // Ensure that the response is valid.
       if (! data || ! data.response || ! data.response.lines) {
         if (this.debug) {
-          console.log('Response from tube update API was invalid.');
+          this.log('Response from tube update API was invalid.');
         }
+        this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'API_INVALID' });
         return;
       }
-
       // Take all the lines that are coming from the response, tidy them up,
       // filter out the duplicates and sort the statuses in order of severity.
       var lines = data.response.lines;
@@ -114,7 +142,7 @@ Tube.prototype._onPebbleAppMessage = function(event) {
         updateData.push(line.name);
         updateData.push(line.statuses.join(', '));
       });
-      this.pebble.sendAppMessage({
+      this.messageQueue.sendAppMessage({
         group: 'TUBE',
         operation: 'UPDATE',
         data: updateData.join('|')
@@ -122,6 +150,39 @@ Tube.prototype._onPebbleAppMessage = function(event) {
 
     }.bind(this));
 
+  }
+
+  function opLineDetails(data) {
+    if (this.analytics) {
+      this.analytics.trackEvent('tube', 'details:' + data);
+    }
+
+    this.http.get(Config.api.tube.details, { line: data }, function (err, data) {
+      // If there was an error, send an error code to the Pebble.
+      if (err) {
+        switch (err.message) {
+        case 'NOT_CONNECTED':
+          this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'OFFLINE' });
+          return;
+        default:
+          this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'HTTP_UNKNOWN' });
+          return;
+        }
+      }
+      // Ensure that the response is valid.
+      if (! data || ! data.response) {
+        if (this.debug) {
+          this.log('Response from tube update API was invalid.');
+        }
+        this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'API_INVALID' });
+        return;
+      }
+      this.messageQueue.sendAppMessage({
+        group: 'TUBE',
+        operation: 'DETAILS',
+        data: data.response
+      });
+    }.bind(this));
   }
 
   // Calculate the weight of a line using the status and the StatusOrdering.
@@ -173,11 +234,18 @@ Tube.prototype._onPebbleAppMessage = function(event) {
 
 };
 
-Tube.prototype.init = function() {
-  if (this.debug) {
-    console.log('UK Transport // ' + this.version + ' // Tube // Ready');
+Tube.prototype.log = function () {
+  if (! this.debug) {
+    return;
   }
+  var pieces = [ 'UK Transport', this.version, 'Tube' ];
+  pieces = pieces.concat(Array.prototype.slice.call(arguments));
+  console.log(pieces.join(' // '));
+};
+
+Tube.prototype.init = function() {
   this.pebble.addEventListener('appmessage', this._onPebbleAppMessage.bind(this));
+  this.log('Ready');
 };
 
 // The order in which we display lines, and the status of those lines is
@@ -187,3 +255,4 @@ Tube.prototype.init = function() {
 Tube.StatusOrdering = [ 'Suspended', 'Part Suspended', 'Planned Closure',
   'Part Closure', 'Severe Delays', 'Reduced Service', 'Bus Service',
   'Minor Delays', 'Good Service' ];
+

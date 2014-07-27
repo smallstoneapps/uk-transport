@@ -1,10 +1,16 @@
-# Build folder
-build
+# Pebble build folder
+build/
 
-# Waf lock files
+# Node.JS modules
+node_modules/
+
+# WAF lock files
 .lock-*
 
-# OS guff
+# OS guffins
 .DS_Store
 
-node_modules/
+# Generate files
+src/js/coverage/
+src/generated/
+src/js/src/generated/
