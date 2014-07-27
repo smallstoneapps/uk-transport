@@ -26,13 +26,7 @@ You can also keep an eye on the status of the London Underground.
 The best way to get UK Transport is to [install it from the Pebble appstore][appstore]
 using the Pebble app on your Android or iOS device.
 
-Alternatively, it is [available on MyPebbleFaces][mpf].
-
-You can also [download the PBW file from GitHub][github_pbw].
-
 [appstore]: https://apps.getpebble.com/applications/52d3086712ea3dec7e00001b
 [badge]: http://pblweb.com/badge/52d3086712ea3dec7e00001b/black/medium/
 [banner]: https://raw.githubusercontent.com/smallstoneapps/multi-timer/master/marketing/banners/banner_03_tube.png
 [breakfast]: https://smallstoneapps.s3.amazonaws.com/uk-transport/marketing/bbc-breakfast-2014-02-15.png
-[mpf]: TODO
-[github_pbw]: TODO
