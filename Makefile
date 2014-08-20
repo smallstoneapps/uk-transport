@@ -1,4 +1,4 @@
-# UK Transport v0.3.0
+# UK Transport v1.0
 #
 # http://matthewtole.com/pebble/uk-transport/
 #
@@ -37,7 +37,7 @@ CFLAGS=
 else
 CFLAGS=-std=c11
 endif
-CINCLUDES=-I tests/include/ -I tests/
+CINCLUDES=-I tests/include/ -I tests/ -I src/libs/pebble-assist/ -I src/libs/message-queue/ -I src/libs/linked-list/ -I src/libs/data-processor/
 
 TEST_FILES=tests/train.c tests/bus.c tests/tests.c
 SRC_FILES=src/train.c src/bus.c src/libs/data-processor/data-processor.c src/libs/message-queue/message-queue.c src/libs/linked-list/linked-list.c

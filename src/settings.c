@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -34,16 +34,36 @@ src/settings.c
 
 */
 
+#include <pebble.h>
+#include <pebble-assist.h>
 #include "settings.h"
+#include "analytics.h"
+#include "persist.h"
 #include "train.h"
 #include "bus.h"
 
 void settings_restore(void) {
-  train_load_favourites();
-  bus_load_favourites();
+  if (! persist_exists(PERSIST_VERSION_KEY)) {
+    return;
+  }
+  uint8_t persist_version = persist_read_int(PERSIST_VERSION_KEY);
+  if (PERSIST_VERSION == persist_version) {
+    train_load_favourites();
+    bus_load_favourites();
+  }
+  else{
+    WARN("Mismatched persistence version (Current: %d, Stored: %d)",
+      PERSIST_VERSION, persist_version);
+  }
+  if (persist_exists(PERSIST_CRASH)) {
+    analytics_track_event("crash.detected", " ");
+  }
+  persist_write_bool(PERSIST_CRASH, true);
 }
 
 void settings_save(void) {
   train_save_favourites();
   bus_save_favourites();
+  persist_write_int(PERSIST_VERSION_KEY, PERSIST_VERSION);
+  persist_delete(PERSIST_CRASH);
 }

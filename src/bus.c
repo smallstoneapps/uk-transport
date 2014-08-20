@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -37,10 +37,10 @@ src/bus.c
 #include <pebble.h>
 #include "persist.h"
 #include "bus.h"
-#include "libs/pebble-assist/pebble-assist.h"
-#include "libs/message-queue/message-queue.h"
-#include "libs/linked-list/linked-list.h"
-#include "libs/data-processor/data-processor.h"
+#include <pebble-assist.h>
+#include <message-queue.h>
+#include <linked-list.h>
+#include <data-processor.h>
 
 static void message_handler(char* operation, char* data);
 static bool compare_stops(void* stop1, void* stop2);
@@ -124,7 +124,7 @@ void bus_save_favourites(void) {
       strcat(favourite_str, bus_get_favourite(f)->indicator);
     }
     persist_write_string(PERSIST_BUS_FAVOURITE, favourite_str);
-    DEBUG(favourite_str);
+    DEBUG("%s", favourite_str);
     free_safe(favourite_str);
   }
   else {

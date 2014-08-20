@@ -1,4 +1,4 @@
-# UK Transport v0.3.0
+# UK Transport v1.0
 #
 # http://matthewtole.com/pebble/uk-transport/
 #
@@ -51,7 +51,7 @@ def distclean(ctx):
   ctx.load('pebble_sdk')
   try:
     os.remove('../src/js/pebble-js-app.js')
-    os.remove('../src/js/src/appinfo.js')
+    os.remove('../src/js/src/generated/appinfo.js')
     os.remove('../src/generated/appinfo.h')
   except OSError as e:
     pass
@@ -62,7 +62,6 @@ def build(ctx):
   js_libs = [
     '../src/js/src/libs/http.js',
     '../src/js/src/libs/keen.js',
-    '../src/js/src/libs/pebble-ga.js',
     '../src/js/src/libs/js-message-queue.min.js'
   ]
 
@@ -92,8 +91,18 @@ def build(ctx):
   ctx(rule=concatenate_js, source=' '.join(js_libs + js_sources), target=built_js)
 
   # Build and bundle the Pebble app.
-  ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c'), target='pebble-app.elf')
+  ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c'),
+    includes=lib_folders(ctx),
+    target='pebble-app.elf')
   ctx.pbl_bundle(elf='pebble-app.elf', js=built_js)
+
+# Return a list of all of the subfolders within the "src/libs/" folder
+def lib_folders(ctx):
+  folders = []
+  libs = ctx.path.find_node('./src/libs')
+  for folder in libs.listdir():
+    folders.append(libs.find_node(folder).abspath())
+  return folders
 
 def generate_appinfo_h(task):
   ext_out = '.c'
@@ -105,7 +114,6 @@ def generate_appinfo_h(task):
   write_comment_header(f, 'src/generated/appinfo.h', appinfo)
   f.write('#pragma once\n\n')
   f.write('#define VERSION_LABEL "{0}"\n'.format(appinfo['versionLabel']))
-  f.write('#define VERSION_CODE {0}\n'.format(appinfo['versionCode']))
   f.write('#define UUID "{0}"\n'.format(appinfo['uuid']))
   for key in appinfo['appKeys']:
     f.write('#define APP_KEY_{0} {1}\n'.format(key.upper(), appinfo['appKeys'][key]))

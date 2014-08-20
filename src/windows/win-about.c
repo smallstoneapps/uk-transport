@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -34,10 +34,12 @@ src/windows/about.c
 
 */
 
-#include <pebble.h>
 #include "win-about.h"
-#include "libs/scroll-text-layer/scroll-text-layer.h"
-#include "libs/pebble-assist/pebble-assist.h"
+
+#include <pebble.h>
+#include <scroll-text-layer.h>
+#include <pebble-assist.h>
+
 #include "../generated/appinfo.h"
 
 static void window_load(Window* window);

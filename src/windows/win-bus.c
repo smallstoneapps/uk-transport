@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -35,10 +35,11 @@ src/windows/win-bus.c
 */
 
 #include <pebble.h>
-#include "../libs/pebble-assist/pebble-assist.h"
-#include "../libs/bitmap-loader/bitmap-loader.h"
+#include <pebble-assist.h>
+#include <bitmap-loader.h>
 #include "../layers/layer-loading.h"
 #include "../bus.h"
+#include "../analytics.h"
 #include "win-bus.h"
 #include "win-bus-stop.h"
 
@@ -56,6 +57,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuI
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context);
 static void menu_select_long_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context);
 static void draw_stop(GContext* ctx, BusStop* stop);
+static void draw_stop_favourite(GContext* ctx, BusStop* stop);
 
 static void stops_updated(void);
 static uint16_t actual_section(uint16_t section_index);
@@ -64,7 +66,7 @@ static Window* window;
 static MenuLayer* layer_menu;
 static LoadingLayer* layer_loading;
 
-static char* loading_message = "Locating Nearest Bus Stops";
+static char* loading_message = "Finding Bus Stops";
 
 void win_bus_create(void) {
   window = window_create();
@@ -158,8 +160,7 @@ static void menu_draw_header_callback(GContext* ctx, const Layer* cell_layer, ui
 static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* data) {
   switch (actual_section(cell_index->section)) {
     case SECTION_FAVOURITE:
-      // draw_station_favourite(ctx, bus_get_favourite(cell_index->row));
-      draw_stop(ctx, bus_get_favourite(cell_index->row));
+      draw_stop_favourite(ctx, bus_get_favourite(cell_index->row));
       break;
     case SECTION_NEARBY:
       if (bus_get_stop_count() == 0) {
@@ -178,9 +179,13 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
   switch (actual_section(cell_index->section)) {
     case SECTION_FAVOURITE:
       stop = bus_get_favourite(cell_index->section);
+      snprintf(analytics_str, 32, "code`%s", stop->code);
+      analytics_track_event("bus.favourite.view", analytics_str);
       break;
     case SECTION_NEARBY:
       stop = bus_get_stop(cell_index->row);
+      snprintf(analytics_str, 32, "code`%s", stop->code);
+      analytics_track_event("bus.stop.view", analytics_str);
       break;
   }
   if (stop == NULL) {
@@ -193,10 +198,14 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
 static void menu_select_long_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
   switch (actual_section(cell_index->section)) {
     case SECTION_FAVOURITE:
+      snprintf(analytics_str, 32, "code`%s", bus_get_favourite(cell_index->row)->code);
+      analytics_track_event("bus.favourite.remove", analytics_str);
       bus_remove_favourite(bus_get_favourite(cell_index->row));
       menu_layer_reload_data(layer_menu);
       break;
     case SECTION_NEARBY:
+      snprintf(analytics_str, 32, "code`%s", bus_get_stop(cell_index->row)->code);
+      analytics_track_event("bus.favourite.add", analytics_str);
       bus_add_favourite(bus_get_stop(cell_index->row));
       menu_layer_reload_data(layer_menu);
       menu_layer_set_selected_index(layer_menu, (MenuIndex) {
@@ -213,6 +222,16 @@ static void draw_stop(GContext* ctx, BusStop* stop) {
   }
   graphics_context_set_text_color(ctx, GColorBlack);
   graphics_draw_text(ctx, stop->indicator, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, -4, 136, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, stop->name, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(4, 20, 136, 22), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+}
+
+static void draw_stop_favourite(GContext* ctx, BusStop* stop) {
+  if (NULL == stop) {
+    return;
+  }
+  graphics_context_set_text_color(ctx, GColorBlack);
+  graphics_draw_bitmap_in_rect(ctx, bitmaps_get_bitmap(RESOURCE_ID_ICON_FAVOURITE), GRect(4, 6, 14, 14));
+  graphics_draw_text(ctx, stop->indicator, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(22, -4, 118, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
   graphics_draw_text(ctx, stop->name, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(4, 20, 136, 22), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 }
 

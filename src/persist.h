@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -36,5 +36,8 @@ src/persist.h
 
 #pragma once
 
-#define PERSIST_TRAIN_FAVOURITE 0
-#define PERSIST_BUS_FAVOURITE 1
+#define PERSIST_TRAIN_FAVOURITE 10
+#define PERSIST_BUS_FAVOURITE 20
+#define PERSIST_VERSION_KEY 0
+#define PERSIST_VERSION 1
+#define PERSIST_CRASH 2

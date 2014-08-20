@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -46,7 +46,6 @@ var Bus = function (options) {
   this.location = options.location || navigator.geolocation;
 
   this.debug = options.debug;
-  this.analytics = options.ga;
   this.keen = options.keen;
   this.version = options.version;
   this.api = options.api;
@@ -71,25 +70,30 @@ var Bus = function (options) {
 
   function opBusStops() {
 
-    if (this.analytics) {
-      this.analytics.trackEvent('bus', 'stops');
-    }
+    var timeLocation = new Date();
+    var timeLookup = null;
 
     this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this));
 
     function locationCallback(position) {
+      trackTimeTaken.call(this, timeLocation, 'bus.location');
+      logTimeElapsed.call(this, timeLocation, 'Getting location took %TIME%.');
       var requestData = {
         lon: position.coords.longitude,
         lat: position.coords.latitude
       };
+      timeLookup = new Date();
       this.http.get(this.api.stops, requestData, requestCallback.bind(this));
     }
 
-    function locationError(err) {
-      console.log(err);
+    function locationError() {
+      trackTimeTaken.call(this, timeLocation, 'bus.location.error');
+      logTimeElapsed.call(this, timeLocation, 'Failing to get location took %TIME%.');
     }
 
     function requestCallback(err, data) {
+      trackTimeTaken.call(this, timeLookup, 'bus.stops');
+      logTimeElapsed.call(this, timeLookup, 'Finding nearest stops took %TIME%.');
       if (err) {
         return console.log(err);
       }
@@ -109,10 +113,6 @@ var Bus = function (options) {
   }
 
   function opBusDepartures(data) {
-    if (this.analytics) {
-      this.analytics.trackEvent('bus', 'depatures-' + data);
-    }
-
     var code = data;
     var requestData = {
       stop: code
@@ -138,6 +138,19 @@ var Bus = function (options) {
         /*jshint +W106*/
       });
       this.messageQueue.sendAppMessage({ group: 'BUS', operation: 'DEPARTURES', data: responseData.join('|') });
+    }
+  }
+
+  function logTimeElapsed(start, message) {
+    var now = new Date();
+    var totalMs = now.getTime() - start.getTime();
+    this.log(message.replace('%TIME%', totalMs + 'ms'));
+  }
+
+  function trackTimeTaken(start, event) {
+    var now = new Date();
+    if (this.keen) {
+      this.keen.sendEvent('time.taken', { event: event, msTaken: now.getTime() - start.getTime() });
     }
   }
 

@@ -36,7 +36,7 @@ describe('Train', function () {
     done();
   });
 
-  it.only('should respond to request for nearest stations', function (done) {
+  it('should respond to request for nearest stations', function (done) {
     http.addHandler(/.*/, function (url, data, callback) {
       console.log(url);
       return callback(null, [

@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -36,9 +36,8 @@ src/layers/layer-loading.c
 
 #include <pebble.h>
 #include "layer-loading.h"
-#include "../libs/font-loader/font-loader.h"
-#include "../libs/pebble-assist/pebble-assist.h"
-#include "../libs/bitmap-loader/bitmap-loader.h"
+#include <pebble-assist.h>
+#include <bitmap-loader.h>
 
 typedef struct {
   char* message;

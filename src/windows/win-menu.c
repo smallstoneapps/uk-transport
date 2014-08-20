@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -35,13 +35,14 @@ src/windows/win-menu.c
 */
 
 #include <pebble.h>
-#include "../libs/pebble-assist/pebble-assist.h"
-#include "../libs/bitmap-loader/bitmap-loader.h"
+#include <pebble-assist.h>
+#include <bitmap-loader.h>
 #include "win-menu.h"
 #include "win-bus.h"
 #include "win-tube.h"
 #include "win-train-stations.h"
 #include "win-about.h"
+#include "../analytics.h"
 
 #define MENU_SECTIONS 2
 
@@ -230,6 +231,7 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
     case MENU_SECTION_FOOTER:
       switch (cell_index->row) {
         case MENU_ROW_FOOTER_ABOUT:
+          analytics_track_event("window.about", " ");
           win_about_show(false);
         break;
       }

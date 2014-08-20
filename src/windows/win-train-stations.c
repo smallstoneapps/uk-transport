@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -37,11 +37,12 @@ src/windows/win-train-stations.c
 #include <pebble.h>
 #include "win-train-departures.h"
 #include "win-train-stations.h"
-#include "../libs/pebble-assist/pebble-assist.h"
-#include "../libs/bitmap-loader/bitmap-loader.h"
-#include "../libs/message-queue/message-queue.h"
+#include <pebble-assist.h>
+#include <bitmap-loader.h>
+#include <message-queue.h>
 #include "../layers/layer-loading.h"
 #include "../train.h"
+#include "../analytics.h"
 
 #define SECTION_FAVOURITE 0
 #define SECTION_NEARBY 1
@@ -63,11 +64,11 @@ static void draw_station(GContext* ctx, TrainStation* station);
 static void draw_station_favourite(GContext* ctx, TrainStation* station);
 static void goto_station(TrainStation* station);
 static uint16_t actual_section(uint16_t section_index);
-static void message_handler(char* operation, char* data);
 
 static Window* window;
 static MenuLayer* layer_menu;
 static LoadingLayer* layer_loading;
+static char* loading_message = "Finding Train Stations";
 
 void win_train_create(void) {
   window = window_create();
@@ -78,7 +79,6 @@ void win_train_create(void) {
   });
   win_train_departures_create();
   train_register_stations_update_handler(stations_updated);
-  mqueue_register_handler("TRAIN", message_handler);
 }
 
 void win_train_destroy(void) {
@@ -114,7 +114,7 @@ static void window_load(Window* window) {
   menu_layer_add_to_window(layer_menu, window);
 
   layer_loading = loading_layer_create(window);
-  loading_layer_set_text(layer_loading, "Finding Nearest Train Stations");
+  loading_layer_set_text(layer_loading, loading_message);
 }
 
 static void window_unload(Window* window) {
@@ -171,7 +171,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuI
     case SECTION_NEARBY:
       if (train_get_station_count() == 0) {
         graphics_context_set_text_color(ctx, GColorBlack);
-        graphics_draw_text(ctx, "Finding Nearest Train Stations", fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, 0, 136, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+        graphics_draw_text(ctx, loading_message, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(4, 0, 136, 28), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
       }
       else {
         draw_station(ctx, train_get_station(cell_index->row));
@@ -183,22 +183,33 @@ static void menu_draw_row_callback(GContext* ctx, const Layer* cell_layer, MenuI
 static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
   switch (actual_section(cell_index->section)) {
     case SECTION_FAVOURITE:
+    snprintf(analytics_str, 32, "code`%s", train_get_favourite(cell_index->row)->code);
+      analytics_track_event("train.favourite.view", analytics_str);
       goto_station(train_get_favourite(cell_index->row));
       break;
     case SECTION_NEARBY:
+    snprintf(analytics_str, 32, "code`%s", train_get_station(cell_index->row)->code);
+      analytics_track_event("train.station.view", analytics_str);
       goto_station(train_get_station(cell_index->row));
       break;
   }
 }
 
 static void menu_select_long_click_callback(MenuLayer* menu_layer, MenuIndex* cell_index, void* callback_context) {
+  TrainStation* station = NULL;
   switch (actual_section(cell_index->section)) {
     case SECTION_FAVOURITE:
-      train_remove_favourite(train_get_favourite(cell_index->row));
+      station = train_get_favourite(cell_index->row);
+      snprintf(analytics_str, 32, "code`%s", station->code);
+      analytics_track_event("train.favourite.remove", analytics_str);
+      train_remove_favourite(station);
       menu_layer_reload_data(layer_menu);
-      break;
+    break;
     case SECTION_NEARBY:
-      train_add_favourite(train_get_station(cell_index->row));
+      station = train_get_station(cell_index->row);
+      snprintf(analytics_str, 32, "code`%s", station->code);
+      analytics_track_event("train.favourite.add", analytics_str);
+      train_add_favourite(station);
       menu_layer_reload_data(layer_menu);
       menu_layer_set_selected_index(layer_menu, (MenuIndex) {
         .section = 0,
@@ -258,11 +269,4 @@ static uint16_t actual_section(uint16_t section_index) {
     actual_section += 1;
   }
   return actual_section;
-}
-
-static void message_handler(char* operation, char* data) {
-  if (strcmp(operation, "ERROR") != 0) {
-    return;
-  }
-  LOG(data);
 }

@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -36,8 +36,8 @@ src/windows/win-tube-details.c
 
 #include <pebble.h>
 #include "win-tube-details.h"
-#include "../libs/scroll-text-layer/scroll-text-layer.h"
-#include "../libs/pebble-assist/pebble-assist.h"
+#include <scroll-text-layer.h>
+#include <pebble-assist.h>
 #include "../layers/layer-loading.h"
 #include "../tube.h"
 

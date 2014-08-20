@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -48,7 +48,6 @@ var Tube = function (options) {
   this.http = options.http || http;
 
   this.debug = options.debug;
-  this.analytics = options.ga;
   this.version = options.version;
 };
 
@@ -76,10 +75,6 @@ Tube.prototype._onPebbleAppMessage = function(event) {
   }
 
   function opLineStatus(data) {
-
-    if (this.analytics) {
-      this.analytics.trackEvent('tube', 'update');
-    }
 
     this.http.get(Config.api.tube.status, data, function (err, data) {
       // If there was an error, send an error code to the Pebble.
@@ -153,9 +148,6 @@ Tube.prototype._onPebbleAppMessage = function(event) {
   }
 
   function opLineDetails(data) {
-    if (this.analytics) {
-      this.analytics.trackEvent('tube', 'details:' + data);
-    }
 
     this.http.get(Config.api.tube.details, { line: data }, function (err, data) {
       // If there was an error, send an error code to the Pebble.

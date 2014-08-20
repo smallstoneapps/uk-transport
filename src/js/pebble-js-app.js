@@ -81,13 +81,17 @@ var Keen = function() {
         init: init,
         sendEvent: sendEvent
     };
-    function init(http, Pebble, config, appinfo) {
+    function init(http, Pebble, config, appinfo, debug) {
         _http = http;
         _pebble = Pebble;
         _config = config;
         _appinfo = appinfo;
+        _debug = debug;
     }
     function sendEvent(name, data) {
+        if (!data) {
+            data = {};
+        }
         data.app = {
             name: _appinfo.shortName,
             version: _appinfo.versionLabel,
@@ -97,51 +101,22 @@ var Keen = function() {
             accountToken: _pebble.getAccountToken()
         };
         var url = "https://api.keen.io/3.0/projects/" + _config.projectId + "/events/" + name + "?api_key=" + _config.writeKey;
+        if (_debug) {
+            log(url);
+            log(JSON.stringify(data));
+            return;
+        }
         _http.post(url, JSON.stringify(data), function(err, response) {
             if (err) {}
             if (!response.created) {}
         });
     }
-}();
-
-var Analytics = function(analyticsId, appName, appVersion) {
-    this.analyticsId = analyticsId;
-    this.appName = appName;
-    this.appVersion = appVersion;
-    this.analyticsUserId = Pebble.getAccountToken();
-};
-
-Analytics.prototype._trackGA = function(type, params) {
-    var req = new XMLHttpRequest();
-    var url = "http://www.google-analytics.com/collect";
-    var trackingParams = "v=1";
-    trackingParams += "&tid=" + this.analyticsId;
-    trackingParams += "&cid=" + this.analyticsUserId;
-    trackingParams += "&t=" + type;
-    trackingParams += "&an=" + this.appName;
-    trackingParams += "&av=" + this.appVersion;
-    for (var parameterKey in params) {
-        if (params.hasOwnProperty(parameterKey)) {
-            trackingParams += "&" + parameterKey + "=" + params[parameterKey];
-        }
+    function log() {
+        var pieces = [ "UK Transport", this.version, "Keen" ];
+        pieces = pieces.concat(Array.prototype.slice.call(arguments));
+        console.log(pieces.join(" // "));
     }
-    req.open("POST", url, true);
-    req.setRequestHeader("Content-length", trackingParams.length);
-    req.send(trackingParams);
-};
-
-Analytics.prototype.trackScreen = function(screenName) {
-    this._trackGA("appview", {
-        cd: screenName
-    });
-};
-
-Analytics.prototype.trackEvent = function(category, action) {
-    this._trackGA("event", {
-        ec: category,
-        ea: action
-    });
-};
+}();
 
 var MessageQueue = function() {
     var RETRY_MAX = 5;
@@ -265,8 +240,8 @@ var AppInfo = {
     shortName: "UK Transport",
     longName: "UK Transport",
     companyName: "Matthew Tole",
-    versionCode: 10,
-    versionLabel: "0.3.0",
+    versionCode: 1,
+    versionLabel: "1.1",
     watchapp: {
         watchface: false
     },
@@ -338,7 +313,7 @@ var Config = {
             departures: "http://pebble.matthewtole.com/uk-transport/bus/departures.json"
         }
     },
-    debug: true
+    debug: false
 };
 
 var Bus = function(options) {
@@ -347,7 +322,6 @@ var Bus = function(options) {
     this.http = options.http || http;
     this.location = options.location || navigator.geolocation;
     this.debug = options.debug;
-    this.analytics = options.ga;
     this.keen = options.keen;
     this.version = options.version;
     this.api = options.api;
@@ -370,21 +344,26 @@ var Bus = function(options) {
         }
     };
     function opBusStops() {
-        if (this.analytics) {
-            this.analytics.trackEvent("bus", "stops");
-        }
+        var timeLocation = new Date();
+        var timeLookup = null;
         this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this));
         function locationCallback(position) {
+            trackTimeTaken.call(this, timeLocation, "bus.location");
+            logTimeElapsed.call(this, timeLocation, "Getting location took %TIME%.");
             var requestData = {
                 lon: position.coords.longitude,
                 lat: position.coords.latitude
             };
+            timeLookup = new Date();
             this.http.get(this.api.stops, requestData, requestCallback.bind(this));
         }
-        function locationError(err) {
-            console.log(err);
+        function locationError() {
+            trackTimeTaken.call(this, timeLocation, "bus.location.error");
+            logTimeElapsed.call(this, timeLocation, "Failing to get location took %TIME%.");
         }
         function requestCallback(err, data) {
+            trackTimeTaken.call(this, timeLookup, "bus.stops");
+            logTimeElapsed.call(this, timeLookup, "Finding nearest stops took %TIME%.");
             if (err) {
                 return console.log(err);
             }
@@ -407,9 +386,6 @@ var Bus = function(options) {
         }
     }
     function opBusDepartures(data) {
-        if (this.analytics) {
-            this.analytics.trackEvent("bus", "depatures-" + data);
-        }
         var code = data;
         var requestData = {
             stop: code
@@ -438,6 +414,20 @@ var Bus = function(options) {
             });
         }
     }
+    function logTimeElapsed(start, message) {
+        var now = new Date();
+        var totalMs = now.getTime() - start.getTime();
+        this.log(message.replace("%TIME%", totalMs + "ms"));
+    }
+    function trackTimeTaken(start, event) {
+        var now = new Date();
+        if (this.keen) {
+            this.keen.sendEvent("time.taken", {
+                event: event,
+                msTaken: now.getTime() - start.getTime()
+            });
+        }
+    }
 };
 
 Bus.prototype.log = function() {
@@ -459,7 +449,6 @@ var Tube = function(options) {
     this.messageQueue = options.messageQueue || MessageQueue;
     this.http = options.http || http;
     this.debug = options.debug;
-    this.analytics = options.ga;
     this.version = options.version;
 };
 
@@ -483,9 +472,6 @@ Tube.prototype._onPebbleAppMessage = function(event) {
         break;
     }
     function opLineStatus(data) {
-        if (this.analytics) {
-            this.analytics.trackEvent("tube", "update");
-        }
         this.http.get(Config.api.tube.status, data, function(err, data) {
             if (err) {
                 switch (err.message) {
@@ -553,9 +539,6 @@ Tube.prototype._onPebbleAppMessage = function(event) {
         }.bind(this));
     }
     function opLineDetails(data) {
-        if (this.analytics) {
-            this.analytics.trackEvent("tube", "details:" + data);
-        }
         this.http.get(Config.api.tube.details, {
             line: data
         }, function(err, data) {
@@ -654,7 +637,6 @@ var Train = function(options) {
     this.http = options.http || http;
     this.location = options.location || navigator.geolocation;
     this.debug = options.debug;
-    this.analytics = options.ga;
     this.keen = options.keen;
     this.version = options.version;
     this.api = options.api;
@@ -685,9 +667,6 @@ var Train = function(options) {
         }
     };
     function opTrainStations() {
-        if (this.analytics) {
-            this.analytics.trackEvent("train", "stations");
-        }
         var timeLocation = new Date();
         var timeLookup = null;
         var locationOptions = {
@@ -733,9 +712,6 @@ var Train = function(options) {
         }
     }
     function opTrainDepartures(data) {
-        if (this.analytics) {
-            this.analytics.trackEvent("train", "departures-" + data);
-        }
         var code = data;
         var requestData = {
             station: code
@@ -783,10 +759,12 @@ var Train = function(options) {
     }
     function trackTimeTaken(start, event) {
         var now = new Date();
-        this.keen.sendEvent("time-taken", {
-            event: event,
-            msTaken: now.getTime() - start.getTime()
-        });
+        if (this.keen) {
+            this.keen.sendEvent("time.taken", {
+                event: event,
+                msTaken: now.getTime() - start.getTime()
+            });
+        }
     }
 };
 
@@ -805,32 +783,24 @@ Train.prototype.init = function() {
 };
 
 (function() {
-    var ga;
     Pebble.addEventListener("ready", function() {
         try {
-            ga = new Analytics("UA-48246810-1", "UK Transport", AppInfo.versionLabel);
             train.init();
             tube.init();
             bus.init();
-            Keen.init(http, Pebble, Config.keen, AppInfo);
-            var lastVersion = parseInt(localStorage.getItem("lastVersion"), 10);
-            if (AppInfo.versionCode > lastVersion) {
-                showUpdateMessage(lastVersion || 0);
-                localStorage.setItem("lastVersion", AppInfo.versionCode);
-            }
+            Keen.init(http, Pebble, Config.keen, AppInfo, Config.debug);
+            Pebble.addEventListener("appmessage", analyticsMessageHandler);
         } catch (ex) {
             console.log(ex);
         }
     });
     var tube = new Tube({
-        ga: ga,
         keen: Keen,
         debug: Config.debug,
         api: Config.api.tube,
         version: AppInfo.versionLabel
     });
     var train = new Train({
-        ga: ga,
         keen: Keen,
         debug: Config.debug,
         transportApi: Config.transportApi,
@@ -838,24 +808,31 @@ Train.prototype.init = function() {
         version: AppInfo.versionLabel
     });
     var bus = new Bus({
-        ga: ga,
         keen: Keen,
         debug: Config.debug,
         transportApi: Config.transportApi,
         api: Config.api.bus,
         version: AppInfo.versionLabel
     });
-    function showUpdateMessage(lastVersion) {
-        var message = "";
-        switch (lastVersion) {
-          case 0:
-            message = "Welcome to UK Transport.";
-            break;
-
-          default:
-            message = "You have updated to the latest version of UK Transport!";
-            break;
+    function analyticsMessageHandler(event) {
+        if ("ANALYTICS" !== event.payload.group) {
+            return;
         }
-        Pebble.showSimpleNotificationOnPebble("UK Transport v" + AppInfo.versionLabel, message);
+        var data = {};
+        try {
+            event.payload.data.split("|").forEach(function(sub) {
+                if (!sub || !sub.length) {
+                    return;
+                }
+                var splitSub = sub.split("`");
+                if (splitSub.length !== 2) {
+                    return;
+                }
+                data[splitSub[0]] = splitSub[1];
+            });
+        } catch (ex) {
+            console.log(ex);
+        }
+        Keen.sendEvent(event.payload.operation, data);
     }
 })();

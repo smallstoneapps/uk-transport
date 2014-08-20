@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -37,7 +37,6 @@ src/js/src/main.js
 /* global Pebble */
 /* global Config */
 /* global AppInfo */
-/* global Analytics */
 /* global Tube */
 /* global Train */
 /* global Bus */
@@ -46,21 +45,13 @@ src/js/src/main.js
 
 (function () {
 
-  var ga;
-
   Pebble.addEventListener('ready', function () {
     try {
-      ga = new Analytics('UA-48246810-1', 'UK Transport', AppInfo.versionLabel);
       train.init();
       tube.init();
       bus.init();
-      Keen.init(http, Pebble, Config.keen, AppInfo);
-
-      var lastVersion = parseInt(localStorage.getItem('lastVersion'), 10);
-      if (AppInfo.versionCode > lastVersion) {
-        showUpdateMessage(lastVersion || 0);
-        localStorage.setItem('lastVersion', AppInfo.versionCode);
-      }
+      Keen.init(http, Pebble, Config.keen, AppInfo, Config.debug);
+      Pebble.addEventListener('appmessage', analyticsMessageHandler);
     }
     catch (ex) {
       console.log(ex);
@@ -68,7 +59,6 @@ src/js/src/main.js
   });
 
   var tube = new Tube({
-    ga: ga,
     keen: Keen,
     debug: Config.debug,
     api: Config.api.tube,
@@ -76,7 +66,6 @@ src/js/src/main.js
   });
 
   var train = new Train({
-    ga: ga,
     keen: Keen,
     debug: Config.debug,
     transportApi: Config.transportApi,
@@ -85,7 +74,6 @@ src/js/src/main.js
   });
 
   var bus = new Bus({
-    ga: ga,
     keen: Keen,
     debug: Config.debug,
     transportApi: Config.transportApi,
@@ -93,17 +81,27 @@ src/js/src/main.js
     version: AppInfo.versionLabel
   });
 
-  function showUpdateMessage(lastVersion) {
-    var message = '';
-    switch (lastVersion) {
-      case 0:
-        message = 'Welcome to UK Transport.';
-        break;
-      default:
-        message = 'You have updated to the latest version of UK Transport!';
-        break;
+  function analyticsMessageHandler(event) {
+    if ('ANALYTICS' !== event.payload.group) {
+      return;
     }
-    Pebble.showSimpleNotificationOnPebble('UK Transport v' + AppInfo.versionLabel, message);
+    var data = {};
+    try {
+      event.payload.data.split('|').forEach(function (sub) {
+        if (! sub || ! sub.length) {
+          return;
+        }
+        var splitSub = sub.split('`');
+        if (splitSub.length !== 2) {
+          return;
+        }
+        data[splitSub[0]] = splitSub[1];
+      });
+    }
+    catch (ex) {
+      console.log(ex);
+    }
+    Keen.sendEvent(event.payload.operation, data);
   }
 
 }());

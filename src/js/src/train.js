@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -46,7 +46,6 @@ var Train = function (options) {
   this.location = options.location || navigator.geolocation;
 
   this.debug = options.debug;
-  this.analytics = options.ga;
   this.keen = options.keen;
   this.version = options.version;
   this.api = options.api;
@@ -80,10 +79,6 @@ var Train = function (options) {
   };
 
   function opTrainStations() {
-
-    if (this.analytics) {
-      this.analytics.trackEvent('train', 'stations');
-    }
 
     var timeLocation = new Date();
     var timeLookup = null;
@@ -119,9 +114,7 @@ var Train = function (options) {
       var responseData = [];
       responseData.push(stations.length);
       stations.forEach(function (station) {
-        /*jshint -W106*/
         responseData.push(station.code);
-        /*jshint +W106*/
         responseData.push(station.name);
       });
       this.messageQueue.sendAppMessage({ group: 'TRAIN', operation: 'STATIONS', data: responseData.join('|') });
@@ -129,9 +122,6 @@ var Train = function (options) {
   }
 
   function opTrainDepartures(data) {
-    if (this.analytics) {
-      this.analytics.trackEvent('train', 'departures-' + data);
-    }
     var code = data;
     var requestData = {
       station: code
@@ -170,7 +160,9 @@ var Train = function (options) {
 
   function trackTimeTaken(start, event) {
     var now = new Date();
-    this.keen.sendEvent('time-taken', { event: event, msTaken: now.getTime() - start.getTime() });
+    if (this.keen) {
+      this.keen.sendEvent('time.taken', { event: event, msTaken: now.getTime() - start.getTime() });
+    }
   }
 
 };

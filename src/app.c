@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -35,18 +35,20 @@ src/app.c
 */
 
 #include <pebble.h>
-#include "libs/bitmap-loader/bitmap-loader.h"
-#include "libs/font-loader/font-loader.h"
-#include "libs/message-queue/message-queue.h"
+#include <bitmap-loader.h>
+#include <message-queue.h>
 
 #include "settings.h"
 #include "windows/win-menu.h"
 #include "tube.h"
 #include "bus.h"
 #include "train.h"
+#include "analytics.h"
 
 static void init(void);
 static void deinit(void);
+
+static time_t time_started;
 
 int main(void) {
   init();
@@ -56,8 +58,6 @@ int main(void) {
 
 static void init(void) {
   bitmaps_init();
-  fonts_init();
-  fonts_assign("icomoon", RESOURCE_ID_FONT_ICON_8);
 
   mqueue_init();
   tube_init();
@@ -67,16 +67,14 @@ static void init(void) {
   settings_restore();
   win_main_menu_create();
   win_main_menu_show(true);
+
+  analytics_track_event("app.start", " ");
+  time_started = time(NULL);
 }
 
 static void deinit(void) {
-  // win_main_menu_destroy();
+  char tmp[16];
+  snprintf(tmp, 16, "run_time`%lld", (long long) time(NULL) - time_started);
+  analytics_track_event("app.end", tmp);
   settings_save();
-  // bitmaps_cleanup();
-  // fonts_cleanup();
-
-  // mqueue_deinit();
-  // tube_deinit();
-  // bus_deinit();
-  // train_deinit();
 }

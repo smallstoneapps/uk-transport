@@ -1,6 +1,6 @@
 /*
 
-UK Transport v0.3.0
+UK Transport v1.1
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -37,10 +37,10 @@ src/train.c
 #include <pebble.h>
 #include "train.h"
 #include "persist.h"
-#include "libs/pebble-assist/pebble-assist.h"
-#include "libs/message-queue/message-queue.h"
-#include "libs/data-processor/data-processor.h"
-#include "libs/linked-list/linked-list.h"
+#include <pebble-assist.h>
+#include <message-queue.h>
+#include <data-processor.h>
+#include <linked-list.h>
 
 static void message_handler(char* operation, char* data);
 
