@@ -178,7 +178,7 @@ static void menu_select_click_callback(MenuLayer* menu_layer, MenuIndex* cell_in
   BusStop* stop = NULL;
   switch (actual_section(cell_index->section)) {
     case SECTION_FAVOURITE:
-      stop = bus_get_favourite(cell_index->section);
+      stop = bus_get_favourite(cell_index->row);
       snprintf(analytics_str, 32, "code`%s", stop->code);
       analytics_track_event("bus.favourite.view", analytics_str);
       break;
