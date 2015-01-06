@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.1
+UK Transport v1.3
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -36,6 +36,7 @@ src/js/src/bus.js
 
 /* global Pebble */
 /* global MessageQueue */
+/* global Raygun */
 /* global http */
 /* exported Bus */
 
@@ -86,12 +87,16 @@ var Bus = function (options) {
       this.http.get(this.api.stops, requestData, requestCallback.bind(this));
     }
 
-    function locationError() {
+    function locationError(err) {
+      Raygun.send(err);
       trackTimeTaken.call(this, timeLocation, 'bus.location.error');
       logTimeElapsed.call(this, timeLocation, 'Failing to get location took %TIME%.');
     }
 
     function requestCallback(err, data) {
+      if (err) {
+        Raygun.send(err);
+      }
       trackTimeTaken.call(this, timeLookup, 'bus.stops');
       logTimeElapsed.call(this, timeLookup, 'Finding nearest stops took %TIME%.');
       if (err) {
@@ -121,6 +126,7 @@ var Bus = function (options) {
 
     function requestCallback(err, data) {
       if (err) {
+        Raygun.send(err);
         return console.log(err);
       }
       if (!data) {
