@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.3
+UK Transport v1.4
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -217,6 +217,7 @@ static void menu_draw_departure_row_expanded(GContext* ctx,
 }
 
 static void menu_select_click_callback(MenuLayer* me, MenuIndex* cell_index, void* callback_context) {
+  return;
   if (expanded_row == cell_index->row) {
     expanded_row = -1;
   }

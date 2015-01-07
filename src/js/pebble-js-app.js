@@ -1507,7 +1507,7 @@ var AppInfo = {
     longName: "UK Transport",
     companyName: "Matthew Tole",
     versionCode: 1,
-    versionLabel: "1.3",
+    versionLabel: "1.4",
     watchapp: {
         watchface: false
     },
@@ -1944,7 +1944,7 @@ var Train = function(options) {
         var timeLookup = null;
         var locationOptions = {
             enableHighAccuracy: false,
-            timeout: 5 * 1e3,
+            timeout: 10 * 1e3,
             maximumAge: 60 * 1e3
         };
         this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this), locationOptions);

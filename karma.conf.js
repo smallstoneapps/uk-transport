@@ -42,6 +42,7 @@ module.exports = function(config) {
     files: [
       'src/*.js',
       'src/libs/keen.js',
+      'src/libs/raygun.js',
       'tests/*.js',
       'tests/libs/*.js',
       'tests/mocks/*.js'

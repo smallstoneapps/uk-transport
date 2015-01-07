@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.3
+UK Transport v1.4
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -86,7 +86,7 @@ var Train = function (options) {
 
     var locationOptions = {
       enableHighAccuracy: false,
-      timeout: 5 * 1000,
+      timeout: 10 * 1000,
       maximumAge: 60 * 1000
     };
     this.location.getCurrentPosition(locationCallback.bind(this), locationError.bind(this), locationOptions);
