@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.4
+UK Transport v1.6
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -55,8 +55,5 @@ var Config = {
       departures: 'http://pebble.matthewtole.com/uk-transport/bus/departures.json'
     }
   },
-  debug: true,
-  raygun: {
-    key: 'kYH5z48etctoVL2wlO8sJA=='
-  }
+  debug: false
 };

@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.4
+UK Transport v1.6
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -36,7 +36,6 @@ src/js/src/train.js
 
 /* global Pebble */
 /* global MessageQueue */
-/* global Raygun */
 /* global http */
 /* exported Train */
 
@@ -103,7 +102,7 @@ var Train = function (options) {
     }
 
     function locationError(err) {
-      Raygun.send(err);
+      console.log(err);
       trackTimeTaken.call(this, timeLocation, 'train.locationError');
       logTimeElapsed.call(this, timeLocation, 'Failing to get location took %TIME%.');
       this.messageQueue.sendAppMessage({ group: 'TRAIN', operation: 'ERROR', data: 'Location access failed.' });
@@ -111,7 +110,8 @@ var Train = function (options) {
 
     function requestCallback(err, data) {
       if (err) {
-        Raygun.send(err);
+        // TODO
+        return console.log(err);
       }
       trackTimeTaken.call(this, timeLookup, 'train.stations');
       logTimeElapsed.call(this, timeLookup, 'Finding nearest stations took %TIME%.');
@@ -133,7 +133,6 @@ var Train = function (options) {
     };
     this.http.get(this.api.departures, requestData, function (err, data) {
       if (err) {
-        Raygun.send(err);
         switch (err.message) {
         case 'NOT_CONNECTED':
           this.messageQueue.sendAppMessage({ group: 'TRAIN', operation: 'ERROR', data: 'Not online.' });

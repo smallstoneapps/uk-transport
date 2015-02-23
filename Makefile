@@ -1,4 +1,4 @@
-# UK Transport v1.4
+# UK Transport v1.6
 #
 # http://matthewtole.com/pebble/uk-transport/
 #

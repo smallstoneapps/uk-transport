@@ -1,4 +1,4 @@
-# UK Transport v1.0
+# UK Transport v1.6
 #
 # http://matthewtole.com/pebble/uk-transport/
 #
@@ -63,7 +63,6 @@ def build(ctx):
     '../src/js/src/libs/http.js',
     '../src/js/src/libs/keen.js',
     '../src/js/src/libs/js-message-queue.min.js',
-    '../src/js/src/libs/raygun.js'
   ]
 
   js_sources = [

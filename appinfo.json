@@ -4,7 +4,8 @@
   "longName": "UK Transport",
   "companyName": "Matthew Tole",
   "versionCode": 1,
-  "versionLabel": "1.4",
+  "versionLabel": "1.6",
+  "targetPlatform": ["aplite", "basalt"],
   "watchapp": {
     "watchface": false
   },

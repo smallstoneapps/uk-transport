@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.4
+UK Transport v1.6
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -41,18 +41,12 @@ src/js/src/main.js
 /* global Train */
 /* global Bus */
 /* global Keen */
-/* global Raygun */
 /* global http */
 
 (function () {
 
   Pebble.addEventListener('ready', function () {
     try {
-      Raygun.init(Config.raygun.key, {
-        debugMode: Config.debug
-      }).attach();
-      Raygun.setUser(Pebble.getAccountToken());
-      Raygun.setVersion(AppInfo.versionLabel);
       train.init();
       tube.init();
       bus.init();
@@ -60,7 +54,6 @@ src/js/src/main.js
       Pebble.addEventListener('appmessage', analyticsMessageHandler);
     }
     catch (ex) {
-      Raygun.send(ex);
     }
   });
 

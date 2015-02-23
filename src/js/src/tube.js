@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.4
+UK Transport v1.6
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -38,7 +38,6 @@ src/js/src/tube.js
 /* global MessageQueue */
 /* global http */
 /* global Config */
-/* global Raygun */
 /* exported Tube */
 
 // The tests for this module can be found in [/src/js/tests/tube.js](test/tube.html)
@@ -80,7 +79,6 @@ Tube.prototype._onPebbleAppMessage = function(event) {
     this.http.get(Config.api.tube.status, data, function (err, data) {
       // If there was an error, send an error code to the Pebble.
       if (err) {
-        Raygun.send(err);
         if (err.message && err.message === 'NOT_CONNECTED') {
           this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'OFFLINE' });
         }
@@ -153,7 +151,6 @@ Tube.prototype._onPebbleAppMessage = function(event) {
     this.http.get(Config.api.tube.details, { line: data }, function (err, data) {
       // If there was an error, send an error code to the Pebble.
       if (err) {
-        Raygun.send(err);
         switch (err.message) {
         case 'NOT_CONNECTED':
           this.messageQueue.sendAppMessage({ group: 'TUBE', operation: 'ERROR', data: 'OFFLINE' });
@@ -249,4 +246,3 @@ Tube.prototype.init = function() {
 Tube.StatusOrdering = [ 'Suspended', 'Part Suspended', 'Planned Closure',
   'Part Closure', 'Severe Delays', 'Reduced Service', 'Bus Service',
   'Minor Delays', 'Good Service' ];
-
