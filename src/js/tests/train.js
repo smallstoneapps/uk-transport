@@ -38,7 +38,6 @@ describe('Train', function () {
 
   it('should respond to request for nearest stations', function (done) {
     http.addHandler(/.*/, function (url, data, callback) {
-      console.log(url);
       return callback(null, [
         {
           code: 'CST',

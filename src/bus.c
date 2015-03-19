@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.6
+UK Transport v1.7
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -197,6 +197,7 @@ static void handle_stops(char* data) {
     stop->code = data_processor_get_string();
     stop->name = data_processor_get_string();
     stop->indicator = data_processor_get_string();
+    DEBUG("[%s],[%s],[%s]", stop->code, stop->name, stop->indicator);
     stops[s] = stop;
   }
   stops_update_handler();

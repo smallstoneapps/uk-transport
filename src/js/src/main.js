@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.6
+UK Transport v1.7
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -42,6 +42,7 @@ src/js/src/main.js
 /* global Bus */
 /* global Keen */
 /* global http */
+/* global MessageQueue */
 
 (function () {
 
@@ -52,6 +53,7 @@ src/js/src/main.js
       bus.init();
       Keen.init(http, Pebble, Config.keen, AppInfo, Config.debug);
       Pebble.addEventListener('appmessage', analyticsMessageHandler);
+      MessageQueue.sendAppMessage({ group: 'SYS', operation: 'INIT', data: 'HELLO!' });
     }
     catch (ex) {
     }

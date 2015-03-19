@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.6
+UK Transport v1.7
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -74,7 +74,7 @@ static void init(void) {
 
 static void deinit(void) {
   char tmp[16];
-  snprintf(tmp, 16, "run_time`%lld", (long long) time(NULL) - time_started);
+  snprintf(tmp, 16, "run_time`%ld", (long) time(NULL) - time_started);
   analytics_track_event("app.end", tmp);
   settings_save();
 }

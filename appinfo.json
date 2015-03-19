@@ -4,11 +4,12 @@
   "longName": "UK Transport",
   "companyName": "Matthew Tole",
   "versionCode": 1,
-  "versionLabel": "1.6",
+  "versionLabel": "1.7",
   "targetPlatform": ["aplite", "basalt"],
   "watchapp": {
     "watchface": false
   },
+  "sdkVersion": "3",
   "appKeys": {
     "group": 0,
     "operation": 1,

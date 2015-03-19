@@ -39,13 +39,16 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context);
 static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context);
 static void inbox_received_callback(DictionaryIterator *iterator, void *context);
 static void send_next_message();
+static void send_timer_callback(void* context);
+static char *translate_error(AppMessageResult result);
 
 static MessageQueue* msg_queue = NULL;
 static HandlerQueue* handler_queue = NULL;
 static bool sending = false;
+static bool can_send = false;
 
 void mqueue_init(void) {
-  app_message_open(app_message_inbox_size_maximum(), 256);
+  AppMessageResult result = app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   app_message_register_outbox_sent(outbox_sent_callback);
   app_message_register_outbox_failed(outbox_failed_callback);
   app_message_register_inbox_received(inbox_received_callback);
@@ -64,7 +67,7 @@ bool mqueue_add(char* group, char* operation, char* data) {
   mq->message->data = malloc(strlen(data));
   strcpy(mq->message->data, data);
 
-  // APP_LOG(APP_LOG_LEVEL_DEBUG, "%s, %s, %s", mq->message->group, mq->message->operation, mq->message->data);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "ADDING: %s, %s, %s", mq->message->group, mq->message->operation, mq->message->data);
 
   if (msg_queue == NULL) {
     msg_queue = mq;
@@ -101,19 +104,27 @@ void mqueue_register_handler(char* group, MessageHandler handler) {
   }
 }
 
+void mqueue_enable_sending(void) {
+  can_send = true;
+  send_next_message();
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
   sending = false;
   MessageQueue* sent = msg_queue;
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "SENT: %s, %s, %s", sent->message->group, sent->message->operation, sent->message->data);
   msg_queue = msg_queue->next;
   destroy_message_queue(sent);
-  send_next_message();
+  app_timer_register(500, send_timer_callback, NULL);
 }
 
 static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
   sending = false;
-  send_next_message();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "ERROR: %s, %s, %s", msg_queue->message->group, msg_queue->message->operation, msg_queue->message->data);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "%s", translate_error(reason));
+  app_timer_register(500, send_timer_callback, NULL);
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -128,6 +139,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     }
     hq = hq->next;
   }
+  
+  mqueue_enable_sending();
 }
 
 static void destroy_message_queue(MessageQueue* queue) {
@@ -139,10 +152,16 @@ static void destroy_message_queue(MessageQueue* queue) {
 }
 
 static void send_next_message() {
+  if (! can_send) {
+    return;
+  }
+
   MessageQueue* mq = msg_queue;
   if (! mq) {
     return;
   }
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "SENDING: %s, %s, %s", mq->message->group, mq->message->operation, mq->message->data);
 
   if (mq->attempts_left <= 0) {
     msg_queue = mq->next;
@@ -156,11 +175,37 @@ static void send_next_message() {
   }
   sending = true;
 
+
   DictionaryIterator* dict;
   app_message_outbox_begin(&dict);
   dict_write_cstring(dict, KEY_GROUP, mq->message->group);
   dict_write_cstring(dict, KEY_DATA, mq->message->data);
   dict_write_cstring(dict, KEY_OPERATION, mq->message->operation);
-  app_message_outbox_send();
+  AppMessageResult result = app_message_outbox_send();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "%s", translate_error(result));
   mq->attempts_left -= 1;
+}
+
+static char *translate_error(AppMessageResult result) {
+  switch (result) {
+    case APP_MSG_OK: return "APP_MSG_OK";
+    case APP_MSG_SEND_TIMEOUT: return "APP_MSG_SEND_TIMEOUT";
+    case APP_MSG_SEND_REJECTED: return "APP_MSG_SEND_REJECTED";
+    case APP_MSG_NOT_CONNECTED: return "APP_MSG_NOT_CONNECTED";
+    case APP_MSG_APP_NOT_RUNNING: return "APP_MSG_APP_NOT_RUNNING";
+    case APP_MSG_INVALID_ARGS: return "APP_MSG_INVALID_ARGS";
+    case APP_MSG_BUSY: return "APP_MSG_BUSY";
+    case APP_MSG_BUFFER_OVERFLOW: return "APP_MSG_BUFFER_OVERFLOW";
+    case APP_MSG_ALREADY_RELEASED: return "APP_MSG_ALREADY_RELEASED";
+    case APP_MSG_CALLBACK_ALREADY_REGISTERED: return "APP_MSG_CALLBACK_ALREADY_REGISTERED";
+    case APP_MSG_CALLBACK_NOT_REGISTERED: return "APP_MSG_CALLBACK_NOT_REGISTERED";
+    case APP_MSG_OUT_OF_MEMORY: return "APP_MSG_OUT_OF_MEMORY";
+    case APP_MSG_CLOSED: return "APP_MSG_CLOSED";
+    case APP_MSG_INTERNAL_ERROR: return "APP_MSG_INTERNAL_ERROR";
+    default: return "UNKNOWN ERROR";
+  }
+}
+
+static void send_timer_callback(void* context) {
+  send_next_message();
 }

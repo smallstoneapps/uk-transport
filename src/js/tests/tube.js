@@ -179,7 +179,6 @@ describe('Tube', function () {
           return callback(new Error('HTTP + ' + req.status));
         };
         req.onerror = function () {
-          console.log(req);
           return callback(new Error('HTTP + ' + req.status));
         };
         req.send();

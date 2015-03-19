@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.6
+UK Transport v1.7
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -82,6 +82,10 @@ var Bus = function (options) {
         lon: position.coords.longitude,
         lat: position.coords.latitude
       };
+      // requestData = {
+      //   lon: -3.166659,
+      //   lat: 51.50817
+      // };
       timeLookup = new Date();
       this.http.get(this.api.stops, requestData, requestCallback.bind(this));
     }
@@ -110,8 +114,8 @@ var Bus = function (options) {
       responseData.push(stops.length);
       stops.forEach(function (stop) {
         responseData.push(stop.atcocode);
-        responseData.push(stop.name);
-        responseData.push(stop.indicator);
+        responseData.push(stop.name.length ? stop.name : ' ');
+        responseData.push(stop.indicator.length ? stop.indicator : ' ');
       });
       this.messageQueue.sendAppMessage({ group: 'BUS', operation: 'STOPS', data: responseData.join('|') });
     }

@@ -1,6 +1,6 @@
 /*
 
-UK Transport v1.6
+UK Transport v1.7
 
 http://matthewtole.com/pebble/uk-transport/
 
@@ -101,8 +101,7 @@ var Train = function (options) {
       this.http.get(this.api.stations, requestData, requestCallback.bind(this));
     }
 
-    function locationError(err) {
-      console.log(err);
+    function locationError() {
       trackTimeTaken.call(this, timeLocation, 'train.locationError');
       logTimeElapsed.call(this, timeLocation, 'Failing to get location took %TIME%.');
       this.messageQueue.sendAppMessage({ group: 'TRAIN', operation: 'ERROR', data: 'Location access failed.' });

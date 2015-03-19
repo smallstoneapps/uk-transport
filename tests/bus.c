@@ -54,6 +54,14 @@ static BusStop* fake_stop(void) {
   return stop;
 }
 
+static BusStop* fake_stop_no_name(void) {
+  BusStop* stop = malloc(sizeof(BusStop));
+  stop->code = "CODE";
+  stop->indicator = "INDICATOR";
+  stop->name = "";
+  return stop;
+}
+
 static char* test_add_favourite(void) {
   BusStop* stop = fake_stop();
   bus_add_favourite(stop);
@@ -66,6 +74,13 @@ static char* test_add_favourite_duplicate(void) {
   BusStop* stop2 = fake_stop();
   bus_add_favourite(stop1);
   bus_add_favourite(stop2);
+  mu_assert(bus_get_favourite_count() == 1, "Favourite count was not 1");
+  return 0;
+}
+
+static char* test_add_favourite_no_name(void) {
+  BusStop* stop = fake_stop_no_name();
+  bus_add_favourite(stop);
   mu_assert(bus_get_favourite_count() == 1, "Favourite count was not 1");
   return 0;
 }
@@ -100,6 +115,7 @@ static char* test_save_favourites(void) {
 char* bus_tests(void) {
   mu_run_test(test_add_favourite);
   mu_run_test(test_add_favourite_duplicate);
+  mu_run_test(test_add_favourite_no_name);
   mu_run_test(test_is_favourite);
   mu_run_test(test_remove_favourite);
   mu_run_test(test_save_favourites);

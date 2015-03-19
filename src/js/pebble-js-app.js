@@ -243,11 +243,12 @@ var AppInfo = {
     longName: "UK Transport",
     companyName: "Matthew Tole",
     versionCode: 1,
-    versionLabel: "1.6",
+    versionLabel: "1.7",
     targetPlatform: [ "aplite", "basalt" ],
     watchapp: {
         watchface: false
     },
+    sdkVersion: "3",
     appKeys: {
         group: 0,
         operation: 1,
@@ -382,8 +383,8 @@ var Bus = function(options) {
             responseData.push(stops.length);
             stops.forEach(function(stop) {
                 responseData.push(stop.atcocode);
-                responseData.push(stop.name);
-                responseData.push(stop.indicator);
+                responseData.push(stop.name.length ? stop.name : " ");
+                responseData.push(stop.indicator.length ? stop.indicator : " ");
             });
             this.messageQueue.sendAppMessage({
                 group: "BUS",
@@ -689,8 +690,7 @@ var Train = function(options) {
             timeLookup = new Date();
             this.http.get(this.api.stations, requestData, requestCallback.bind(this));
         }
-        function locationError(err) {
-            console.log(err);
+        function locationError() {
             trackTimeTaken.call(this, timeLocation, "train.locationError");
             logTimeElapsed.call(this, timeLocation, "Failing to get location took %TIME%.");
             this.messageQueue.sendAppMessage({
@@ -798,6 +798,11 @@ Train.prototype.init = function() {
             bus.init();
             Keen.init(http, Pebble, Config.keen, AppInfo, Config.debug);
             Pebble.addEventListener("appmessage", analyticsMessageHandler);
+            MessageQueue.sendAppMessage({
+                group: "SYS",
+                operation: "INIT",
+                data: "HELLO!"
+            });
         } catch (ex) {}
     });
     var tube = new Tube({

@@ -141,19 +141,19 @@ AppMessageResult app_message_open(const uint32_t size_inbound, const uint32_t si
 }
 
 AppMessageInboxReceived app_message_register_inbox_received(AppMessageInboxReceived received_callback) {
-  return APP_MSG_OK;
+  return received_callback;
 }
 
 AppMessageInboxDropped app_message_register_inbox_dropped(AppMessageInboxDropped dropped_callback) {
-  return APP_MSG_OK;
+  return dropped_callback;
 }
 
 AppMessageOutboxSent app_message_register_outbox_sent(AppMessageOutboxSent sent_callback) {
-  return APP_MSG_OK;
+  return sent_callback;
 }
 
 AppMessageOutboxFailed app_message_register_outbox_failed(AppMessageOutboxFailed failed_callback) {
-  return APP_MSG_OK;
+  return failed_callback;
 }
 
 AppMessageResult app_message_outbox_begin(DictionaryIterator **iterator) {
@@ -170,4 +170,9 @@ Tuple *dict_find(const DictionaryIterator *iter, const uint32_t key) {
 
 DictionaryResult dict_write_cstring(DictionaryIterator *iter, const uint32_t key, const char * const cstring) {
   return DICT_OK;
+}
+
+AppTimer* app_timer_register(uint32_t timeout_ms, AppTimerCallback callback, void* callback_data) {
+  callback(callback_data);
+  return NULL;
 }
