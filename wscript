@@ -1,3 +1,6 @@
+# WARNING: This wscript does not follow good practices and should not be copied
+# or reproduced in your own projects.
+#
 # UK Transport v1.7
 #
 # http://matthewtole.com/pebble/uk-transport/
