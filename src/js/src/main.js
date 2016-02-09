@@ -44,6 +44,14 @@ src/js/src/main.js
 /* global http */
 /* global MessageQueue */
 
+var Config = require('./config');
+var Bus = require('./bus');
+var Train = require('./train');
+var Tube = require('./tube');
+var Keen = require('./libs/keen');
+var http = require('./libs/http');
+var AppInfo = require('../../../appinfo.json');
+
 (function () {
 
   Pebble.addEventListener('ready', function () {

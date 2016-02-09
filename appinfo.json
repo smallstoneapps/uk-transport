@@ -9,6 +9,7 @@
   "watchapp": {
     "watchface": false
   },
+  "enableMultiJS": true,
   "sdkVersion": "3",
   "appKeys": {
     "group": 0,

@@ -35,8 +35,8 @@ src/windows/win-menu.c
 */
 
 #include <pebble.h>
-#include <pebble-assist.h>
-#include <bitmap-loader.h>
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
 #include "win-menu.h"
 #include "win-bus.h"
 #include "win-tube.h"

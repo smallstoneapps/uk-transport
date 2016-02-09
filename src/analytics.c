@@ -36,7 +36,7 @@ src/analytics.h
 
 #include "analytics.h"
 #include <pebble.h>
-#include <message-queue.h>
+#include "libs/message-queue/message-queue.h"
 
 void analytics_track_event(char* name, char* data) {
   mqueue_add("ANALYTICS", name, data);

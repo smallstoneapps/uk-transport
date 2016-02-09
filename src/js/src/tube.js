@@ -42,6 +42,11 @@ src/js/src/tube.js
 
 // The tests for this module can be found in [/src/js/tests/tube.js](test/tube.html)
 
+var http = require('./libs/http');
+var MessageQueue = require('./libs/js-message-queue.min')
+var keen = require('./libs/keen')
+
+
 var Tube = function (options) {
   this.pebble = options.pebble || Pebble;
   this.messageQueue = options.messageQueue || MessageQueue;
@@ -246,3 +251,5 @@ Tube.prototype.init = function() {
 Tube.StatusOrdering = [ 'Suspended', 'Part Suspended', 'Planned Closure',
   'Part Closure', 'Severe Delays', 'Reduced Service', 'Bus Service',
   'Minor Delays', 'Good Service' ];
+
+module.exports = Tube;

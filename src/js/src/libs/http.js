@@ -80,3 +80,5 @@ var http = (function () {
   }
 
 }());
+
+module.exports = http;

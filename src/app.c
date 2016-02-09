@@ -35,8 +35,8 @@ src/app.c
 */
 
 #include <pebble.h>
-#include <bitmap-loader.h>
-#include <message-queue.h>
+#include "libs/bitmap-loader/bitmap-loader.h"
+#include "libs/message-queue/message-queue.h"
 
 #include "settings.h"
 #include "windows/win-menu.h"

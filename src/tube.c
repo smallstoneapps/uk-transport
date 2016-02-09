@@ -36,9 +36,9 @@ src/tube.c
 
 #include <pebble.h>
 #include "tube.h"
-#include <message-queue.h>
-#include <data-processor.h>
-#include <pebble-assist.h>
+#include "libs/message-queue/message-queue.h"
+#include "libs/data-processor/data-processor.h"
+#include "libs/pebble-assist/pebble-assist.h"
 
 static void message_handler(char* operation, char* data);
 static void handle_update(char* data);

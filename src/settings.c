@@ -35,7 +35,7 @@ src/settings.c
 */
 
 #include <pebble.h>
-#include <pebble-assist.h>
+#include "libs/pebble-assist/pebble-assist.h"
 #include "settings.h"
 #include "analytics.h"
 #include "persist.h"

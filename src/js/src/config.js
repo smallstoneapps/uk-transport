@@ -57,3 +57,5 @@ var Config = {
   },
   debug: false
 };
+
+module.exports = Config;

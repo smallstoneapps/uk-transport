@@ -37,8 +37,8 @@ src/windows/win-tube.c
 #include <pebble.h>
 #include "win-tube.h"
 #include "win-tube-details.h"
-#include <pebble-assist.h>
-#include <bitmap-loader.h>
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
 #include "../layers/layer-loading.h"
 #include "../tube.h"
 

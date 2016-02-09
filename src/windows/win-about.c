@@ -37,10 +37,8 @@ src/windows/about.c
 #include "win-about.h"
 
 #include <pebble.h>
-#include <scroll-text-layer.h>
-#include <pebble-assist.h>
-
-#include "../generated/appinfo.h"
+#include "../libs/scroll-text-layer/scroll-text-layer.h"
+#include "../libs/pebble-assist/pebble-assist.h"
 
 static void window_load(Window* window);
 static void window_unload(Window* window);
@@ -90,6 +88,6 @@ static void layer_header_update(Layer* layer, GContext* ctx) {
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_context_set_text_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
-  snprintf(str, 32, "UK Transport %s", VERSION_LABEL);
+  snprintf(str, 32, "UK Transport %s", "1.7");
   graphics_draw_text(ctx, str, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(0, 0, 144, 22), 0, GTextAlignmentCenter, NULL);
 }

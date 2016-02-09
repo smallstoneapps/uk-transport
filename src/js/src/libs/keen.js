@@ -49,3 +49,5 @@ var Keen = (function () {
   }
 
 }());
+
+module.exports = Keen;

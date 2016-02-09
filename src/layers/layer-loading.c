@@ -36,8 +36,8 @@ src/layers/layer-loading.c
 
 #include <pebble.h>
 #include "layer-loading.h"
-#include <pebble-assist.h>
-#include <bitmap-loader.h>
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
 
 typedef struct {
   char* message;

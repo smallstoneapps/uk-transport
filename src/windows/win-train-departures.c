@@ -36,8 +36,8 @@ src/windows/win-train-departures.c
 
 #include <pebble.h>
 #include "win-train-departures.h"
-#include <bitmap-loader.h>
-#include <pebble-assist.h>
+#include "../libs/bitmap-loader/bitmap-loader.h"
+#include "../libs/pebble-assist/pebble-assist.h"
 #include "../layers/layer-loading.h"
 #include "../train.h"
 
@@ -190,7 +190,7 @@ static void menu_draw_departure_row(GContext* ctx, MenuIndex* cell_index,
     fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(4, 22, 64, 18),
     GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 
-  GFont* status_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  GFont status_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   if (train_departure_is_ok(departure)) {
     status_font = fonts_get_system_font(FONT_KEY_GOTHIC_18);
   }

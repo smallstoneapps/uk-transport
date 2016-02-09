@@ -37,9 +37,9 @@ src/windows/win-train-stations.c
 #include <pebble.h>
 #include "win-train-departures.h"
 #include "win-train-stations.h"
-#include <pebble-assist.h>
-#include <bitmap-loader.h>
-#include <message-queue.h>
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
+#include "../libs/message-queue/message-queue.h"
 #include "../layers/layer-loading.h"
 #include "../train.h"
 #include "../analytics.h"

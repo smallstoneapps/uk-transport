@@ -39,6 +39,10 @@ src/js/src/train.js
 /* global http */
 /* exported Train */
 
+var http = require('./libs/http');
+var MessageQueue = require('./libs/js-message-queue.min')
+var keen = require('./libs/keen')
+
 var Train = function (options) {
   this.pebble = options.pebble || Pebble;
   this.messageQueue = options.messageQueue || MessageQueue;
@@ -184,3 +188,5 @@ Train.prototype.init = function() {
   this.pebble.addEventListener('appmessage', this.onPebbleAppMessage.bind(this));
   this.log('Ready');
 };
+
+module.exports = Train;

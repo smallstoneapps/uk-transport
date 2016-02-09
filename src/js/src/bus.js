@@ -39,6 +39,9 @@ src/js/src/bus.js
 /* global http */
 /* exported Bus */
 
+var MessageQueue = require('./libs/js-message-queue.min');
+var http = require('./libs/http');
+
 var Bus = function (options) {
   this.pebble = options.pebble || Pebble;
   this.messageQueue = options.messageQueue || MessageQueue;
@@ -178,3 +181,5 @@ Bus.prototype.init = function() {
   this.pebble.addEventListener('appmessage', this.pebbleAppMessage.bind(this));
   this.log('Ready');
 };
+
+module.exports = Bus;

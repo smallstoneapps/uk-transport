@@ -35,8 +35,8 @@ src/windows/win-bus.c
 */
 
 #include <pebble.h>
-#include <pebble-assist.h>
-#include <bitmap-loader.h>
+#include "../libs/pebble-assist/pebble-assist.h"
+#include "../libs/bitmap-loader/bitmap-loader.h"
 #include "../layers/layer-loading.h"
 #include "../bus.h"
 #include "../analytics.h"
