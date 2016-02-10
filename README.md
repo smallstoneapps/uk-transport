@@ -1,3 +1,5 @@
+![](https://img.shields.io/badge/status-unmaintained-red.svg)
+
 ![UK Transport Marketing Banner][banner]
 
 **The must have Pebble app for people who use UK public transport.**
