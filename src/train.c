@@ -117,7 +117,7 @@ void train_load_favourites(void) {
 
 void train_save_favourites(void) {
   if (train_get_favourite_count() > 0) {
-    char* favourite_str = malloc(sizeof(char) * 256);
+    char* favourite_str = malloc(256);
     uint8_t num = train_get_favourite_count();
     snprintf(favourite_str, 256, "%d", train_get_favourite_count());
     for (uint8_t f = 0; f < num; f += 1) {
@@ -237,9 +237,9 @@ static void destroy_stations(void) {
 
 static TrainStation* clone_station(TrainStation* station) {
   TrainStation* clone = malloc(sizeof(TrainStation));
-  clone->code = malloc(strlen(station->code) * sizeof(char));
+  clone->code = malloc(strlen(station->code) + 1);
   strcpy(clone->code, station->code);
-  clone->name = malloc(strlen(station->name) * sizeof(char));
+  clone->name = malloc(strlen(station->name) + 1);
   strcpy(clone->name, station->name);
   return clone;
 }

@@ -51,6 +51,7 @@ var Tube = require('./tube');
 var Keen = require('./libs/keen');
 var http = require('./libs/http');
 var AppInfo = require('../../../appinfo.json');
+var MessageQueue = require('./libs/js-message-queue.min');
 
 (function () {
 
@@ -64,6 +65,7 @@ var AppInfo = require('../../../appinfo.json');
       MessageQueue.sendAppMessage({ group: 'SYS', operation: 'INIT', data: 'HELLO!' });
     }
     catch (ex) {
+      console.log(ex);
     }
   });
 

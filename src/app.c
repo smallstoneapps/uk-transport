@@ -70,11 +70,12 @@ static void init(void) {
 
   analytics_track_event("app.start", " ");
   time_started = time(NULL);
+  printf("%d", heap_bytes_free());
 }
 
 static void deinit(void) {
-  char tmp[16];
-  snprintf(tmp, 16, "run_time`%ld", (long) time(NULL) - time_started);
-  analytics_track_event("app.end", tmp);
-  settings_save();
+  // char tmp[16];
+  // snprintf(tmp, 16, "run_time`%ld", (long) time(NULL) - time_started);
+  // analytics_track_event("app.end", tmp);
+  // settings_save();
 }

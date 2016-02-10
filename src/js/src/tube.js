@@ -45,7 +45,7 @@ src/js/src/tube.js
 var http = require('./libs/http');
 var MessageQueue = require('./libs/js-message-queue.min')
 var keen = require('./libs/keen')
-
+var Config = require('./config');
 
 var Tube = function (options) {
   this.pebble = options.pebble || Pebble;

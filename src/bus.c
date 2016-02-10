@@ -112,7 +112,7 @@ void bus_load_favourites(void) {
 
 void bus_save_favourites(void) {
   if (bus_get_favourite_count() > 0) {
-    char* favourite_str = malloc(sizeof(char) * 256);
+    char* favourite_str = malloc(256);
     uint8_t num = bus_get_favourite_count();
     snprintf(favourite_str, 256, "%d", num);
     for (uint8_t f = 0; f < num; f += 1) {
@@ -205,11 +205,11 @@ static void handle_stops(char* data) {
 
 static BusStop* clone_stop(BusStop* stop) {
   BusStop* clone = malloc(sizeof(BusStop));
-  clone->code = malloc(strlen(stop->code));
+  clone->code = malloc(strlen(stop->code) + 1);
   strcpy(clone->code, stop->code);
-  clone->indicator = malloc(strlen(stop->indicator));
+  clone->indicator = malloc(strlen(stop->indicator) + 1);
   strcpy(clone->indicator, stop->indicator);
-  clone->name = malloc(strlen(stop->name));
+  clone->name = malloc(strlen(stop->name) + 1);
   strcpy(clone->name, stop->name);
   return clone;
 }

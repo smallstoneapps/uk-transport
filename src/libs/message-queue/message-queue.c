@@ -60,11 +60,11 @@ bool mqueue_add(char* group, char* operation, char* data) {
   mq->attempts_left = ATTEMPT_COUNT;
 
   mq->message = malloc(sizeof(Message));
-  mq->message->group = malloc(strlen(group));
+  mq->message->group = malloc(strlen(group) + 1);
   strcpy(mq->message->group, group);
-  mq->message->operation = malloc(strlen(operation));
+  mq->message->operation = malloc(strlen(operation) + 1);
   strcpy(mq->message->operation, operation);
-  mq->message->data = malloc(strlen(data));
+  mq->message->data = malloc(strlen(data) + 1);
   strcpy(mq->message->data, data);
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "ADDING: %s, %s, %s", mq->message->group, mq->message->operation, mq->message->data);
@@ -88,9 +88,10 @@ bool mqueue_add(char* group, char* operation, char* data) {
 void mqueue_register_handler(char* group, MessageHandler handler) {
   HandlerQueue* hq = malloc(sizeof(HandlerQueue));
   hq->next = NULL;
-  hq->group = malloc(strlen(group));
+  hq->group = malloc(strlen(group) + 1);
   strcpy(hq->group, group);
   hq->handler = handler;
+  printf("%p", handler_queue);
 
   if (handler_queue == NULL) {
     handler_queue = hq;
@@ -102,6 +103,7 @@ void mqueue_register_handler(char* group, MessageHandler handler) {
     }
     eoq->next = hq;
   }
+  printf("%p", handler_queue);
 }
 
 void mqueue_enable_sending(void) {
@@ -132,6 +134,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   char* operation = dict_find(iterator, KEY_OPERATION)->value->cstring;
   char* data = dict_find(iterator, KEY_DATA)->value->cstring;
 
+  printf("%s, %s, %s", group, operation, data);
+
   HandlerQueue* hq = handler_queue;
   while (hq != NULL) {
     if (strcmp(group, hq->group) == 0) {
@@ -153,6 +157,7 @@ static void destroy_message_queue(MessageQueue* queue) {
 
 static void send_next_message() {
   if (! can_send) {
+    printf("Cannot send");
     return;
   }
 
